@@ -1,0 +1,46 @@
+{% extends "layouts/base.html" %}
+
+{% block title %} UI Icons {% endblock %} 
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}{% endblock stylesheets %}
+
+{% block content %}
+
+  <div class="content">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+          <div class="card-header">
+              <p>webcam page</p>
+          </div>
+          <div class="card-body all-icons">
+            <div class="row">
+
+                <div>
+                    <!-- Display the video stream using HTML5 video tag -->
+                    <video width="640" height="480" controls autoplay>
+                        <source src="{% url 'webcam' %}" type="multipart/x-mixed-replace; boundary=frame">
+
+                    </video>
+                </div>
+                <div>
+                    <!-- Display YOLO results -->
+                    <ul>
+                        {% for detection in yolo_output %}
+                            <li>{{ detection }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}{% endblock javascripts %}
