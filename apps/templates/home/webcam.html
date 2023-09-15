@@ -18,20 +18,9 @@
             <div class="row">
 
                 <div>
-                    <!-- Display the video stream using HTML5 video tag -->
-                    <video width="640" height="480" controls autoplay>
-                        <source src="{% url 'webcam' %}" type="multipart/x-mixed-replace; boundary=frame">
+                   <img src="{% url 'video_feed' %}" alt="" >YOLO</img>
+                </div>
 
-                    </video>
-                </div>
-                <div>
-                    <!-- Display YOLO results -->
-                    <ul>
-                        {% for detection in yolo_output %}
-                            <li>{{ detection }}</li>
-                        {% endfor %}
-                    </ul>
-                </div>
 
             </div>
           </div>

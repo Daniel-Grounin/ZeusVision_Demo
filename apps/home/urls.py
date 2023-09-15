@@ -13,7 +13,7 @@ urlpatterns = [
 
     # Matches any html file
     re_path(r'^.*\.*', views.pages, name='pages'),
-    path('webcam/', views.webcam, name='webcam'),
+    path('video_feed', views.video_feed, name='video_feed'),
 
 
 ]

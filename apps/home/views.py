@@ -1,15 +1,13 @@
-# -*- encoding: utf-8 -*-
-"""
-Copyright (c) 2019 - present AppSeed.us
-"""
 
 from django import template
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
-import os
 import cv2
+from yolo_engine import video_detection
+from django.http import StreamingHttpResponse
+from django.shortcuts import render
 
 
 @login_required(login_url="/login/")
@@ -46,16 +44,6 @@ def pages(request):
         return HttpResponse(html_template.render(context, request))
 
 
-from django.shortcuts import render
-import cv2
-from yolo_engine import video_detection
-from django.http import StreamingHttpResponse
-
-frame_counter = 0
-
-# Create a directory to save the frames if it doesn't exist
-save_directory = 'frames'
-os.makedirs(save_directory, exist_ok=True)
 
 
 def generate_frames_webcam(path_x):
@@ -82,8 +70,18 @@ def generate_frames_webcam(path_x):
     # Release the video capture object when done
     cap.release()
 
-def webcam(request):
-    # Use StreamingHttpResponse to send the video frames as a stream
-    response = HttpResponse(generate_frames_webcam(0), content_type="multipart/x-mixed-replace; boundary=frame")
 
-    return response
+def stream():
+    cap = cv2.VideoCapture(0)
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Can't receive frame (stream end?). Exiting ...")
+            break
+        image_bytes = cv2.imencode('.jpg', frame)[1].tobytes()
+        yield (b'--frame\r\n'
+                b'Content-Type: image/jpeg\r\n\r\n' + image_bytes + b'\r\n')
+
+
+def video_feed(request):
+    return StreamingHttpResponse(stream(), content_type='multipart/x-mixed-replace; boundary=frame')
