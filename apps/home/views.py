@@ -59,4 +59,5 @@ def generate_frames_webcam(path_x):
 
 def video_feed(request):
     return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
+    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.1.100.70:1935"), content_type='multipart/x-mixed-replace; boundary=frame')
 
