@@ -1,17 +1,22 @@
+from urllib import request
 
 from django import template
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 import cv2
+from .models import YoloData
+from yolo_engine import data_from_yolo
 from ultralytics import YOLO
 
+import yolo_engine
 from yolo_engine import video_detection
 from django.http import StreamingHttpResponse
 from django.shortcuts import render
 
-
+yolo_data_str = []
 @login_required(login_url="/login/")
 def index(request):
     context = {'segment': 'index'}
@@ -52,9 +57,21 @@ def generate_frames_webcam(path_x):
     for detection_ in yolo_output:
         ref, buffer = cv2.imencode('.jpg', detection_)
         frame = buffer.tobytes()
+        yolo_data_str=','.join(map(str,data_from_yolo))
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        SaveYoloData(yolo_data_str)
 
+
+
+def SaveYoloData(yolo_data_str):
+    user = User.objects.get(username='dori')
+    yolo_data = YoloData(user=user, yolo_data=yolo_data_str)
+    yolo_data.save()
+    print("yolo_data_str",yolo_data_str)
+    print("yolo_data",yolo_data)
+
+def sort_yolo_data(yolo_data_str):
 
 
 def video_feed(request):
