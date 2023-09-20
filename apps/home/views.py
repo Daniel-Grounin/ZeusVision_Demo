@@ -71,7 +71,7 @@ def SaveYoloData(yolo_data_str):
     print("yolo_data_str",yolo_data_str)
     print("yolo_data",yolo_data)
 
-def sort_yolo_data(yolo_data_str):
+#def sort_yolo_data(yolo_data_str):
 
 
 def video_feed(request):
