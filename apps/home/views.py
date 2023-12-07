@@ -67,9 +67,9 @@ def generate_frames_webcam(path_x):
 def SaveYoloData(yolo_data_str):
     user = User.objects.get(username='dori')
     yolo_data = YoloData(user=user, yolo_data=yolo_data_str)
-    yolo_data.save()
-    print("yolo_data_str",yolo_data_str)
-    print("yolo_data",yolo_data)
+    #yolo_data.save()
+    #print("yolo_data_str",yolo_data_str)
+    #print("yolo_data",yolo_data)
 
 #def sort_yolo_data(yolo_data_str):
 
