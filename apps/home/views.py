@@ -60,13 +60,13 @@ def generate_frames_webcam(path_x):
         yolo_data_str=','.join(map(str,data_from_yolo))
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-        SaveYoloData(yolo_data_str)
+        #SaveYoloData(yolo_data_str)
 
 
 
-def SaveYoloData(yolo_data_str):
-    user = User.objects.get(username='dori')
-    yolo_data = YoloData(user=user, yolo_data=yolo_data_str)
+#def SaveYoloData(yolo_data_str):
+   # user = User.objects.get(username='dori')
+    #yolo_data = YoloData(user=user, yolo_data=yolo_data_str)
     #yolo_data.save()
     #print("yolo_data_str",yolo_data_str)
     #print("yolo_data",yolo_data)
