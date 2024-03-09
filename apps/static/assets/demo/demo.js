@@ -517,11 +517,13 @@ demo = {
   },
 
   initGoogleMaps: function() {
-    var myLatlng = new google.maps.LatLng(40.748817, -73.985428);
+    var myLatlng = new google.maps.LatLng(97.250075045367822, 34.78970468530843);
+    const postion = {lat: 97.250075045367822, lng: 34.78970468530843};
     var mapOptions = {
       zoom: 13,
-      center: myLatlng,
-      scrollwheel: false, //we disable de scroll over the map, it is a really annoing when you scroll through page
+      center: postion,
+      mapId: "DEMO_MAP_ID",
+      scrollwheel: false, //we disable de scroll over the map, it is a really annoying when you scroll through page
       styles: [{
           "elementType": "geometry",
           "stylers": [{
@@ -711,15 +713,20 @@ demo = {
       ]
     };
 
-    var map = new google.maps.Map(document.getElementById("map"), mapOptions);
+    const  map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 4,
+        center: postion,
+    });
 
-    var marker = new google.maps.Marker({
-      position: myLatlng,
-      title: "Hello World!"
+    let marker = new google.maps.marker.AdvancedMarkerElement({
+      position: postion,
+      map,
+      title: "Hello World!",
     });
 
     // To add the marker to the map, call setMap();
-    marker.setMap(map);
+    marker.addToMap(map);
+
   },
 
   showNotification: function(from, align) {
@@ -727,7 +734,7 @@ demo = {
 
     $.notify({
       icon: "tim-icons icon-bell-55",
-      message: "Welcome to <b>Black Dashboard</b> - a beautiful freebie for every web developer."
+      message: "Welcome to <b>ZeusVision.</b>"
 
     }, {
       type: type[color],
