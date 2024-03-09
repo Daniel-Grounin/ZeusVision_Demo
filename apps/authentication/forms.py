@@ -5,8 +5,14 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 
+# Ensure these groups exist by creating them in the Django admin or using a data migration
+ROLE_CHOICES = [
+    ('drone_operator', 'Drone Operator'),
+    ('control_room_operator', 'Control Room Operator'),
+    ('manager', 'Manager of the Workers'),
+]
 
 class LoginForm(forms.Form):
     username = forms.CharField(
@@ -54,7 +60,8 @@ class SignUpForm(UserCreationForm):
                 "class": "form-control"
             }
         ))
+    role = forms.ChoiceField(choices=ROLE_CHOICES, widget=forms.Select(attrs={"class": "form-control"}))
 
     class Meta:
         model = User
-        fields = ('username', 'email', 'password1', 'password2')
+        fields = ('username', 'email', 'password1', 'password2', 'role')

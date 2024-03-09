@@ -20,37 +20,41 @@
                     </a>
                 </li>
                 <li class="{% if 'webcam' in segment %} active {% endif %}">
-                    <a href="/webcam.html">
+                    <a href="/webcam">
                         <i class="tim-icons icon-camera-18"></i>
                         <p>Webcam</p>
                     </a>
                 </li>
                 <li class="{% if 'videoupload' in segment %} active {% endif %}">
-                    <a href="/newvideoupload.html">
+                    <a href="/video_upload">
                         <i class="tim-icons icon-cloud-upload-94"></i>
                         <p>Upload Video</p>
                     </a>
                 </li>
                 <li class="{% if 'map' in segment %} active {% endif %}">
-                    <a href="/map.html">
+                    <a href="/map">
                         <i class="tim-icons icon-pin"></i>
                         <p>Maps</p>
                     </a>
                 </li>
                 <li class="{% if 'notifications' in segment %} active {% endif %}">
-                    <a href="/notifications.html">
+                    <a href="/notifications">
                         <i class="tim-icons icon-bell-55"></i>
                         <p>Notifications</p>
                     </a>
                 </li>
+                <li class="{% if 'test' in segment %} active {% endif %}">
+                    <a href="/test">
+                        <i class="tim-icons icon-trophy"></i>
+                        <p>Test</p>
+                    </a>
+                </li>
                 <li class="{% if 'user' in segment %} active {% endif %}">
-                    <a href="/user.html">
+                    <a href="/user">
                         <i class="tim-icons icon-single-02"></i>
                         <p>User Profile</p>
                     </a>
                 </li>
-
-
 
                 <li>
                     <a href="{% url 'login' %}">
