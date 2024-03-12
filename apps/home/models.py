@@ -12,4 +12,13 @@ class YoloData(models.Model):
     date= models.DateTimeField(auto_now_add=True)
 
 
+class Task(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    assigned_to = models.ForeignKey(User, on_delete=models.CASCADE, related_name='assigned_tasks')
+
+    def __str__(self):
+        return self.title
+
+
 

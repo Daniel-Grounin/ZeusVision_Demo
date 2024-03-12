@@ -31,11 +31,25 @@ from django.contrib.auth.decorators import login_required
 
 
 yolo_data_str = []
-@login_required(login_url="/login/")
+@login_required
 def index(request):
-    # You can add context variables to pass to the template as needed
-    context = {}
-    # Render and return the index.html template
+    tasks = Task.objects.filter(assigned_to=request.user)
+    is_manager = request.user.groups.filter(name='manager').exists()
+
+    if is_manager and request.method == 'POST':
+        form = TaskForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # Redirect to clear the form or handle as necessary
+    else:
+        form = TaskForm()
+
+    context = {
+        'tasks': tasks,
+        'is_manager': is_manager,
+        'form': form if is_manager else None,
+    }
+
     return render(request, 'home/index.html', context)
 
 
@@ -144,3 +158,26 @@ def user_view(request):
 
 
 
+from django.shortcuts import render
+from .models import Task
+from django.contrib.auth.decorators import login_required
+
+
+from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required, user_passes_test
+from .forms import TaskForm
+
+def is_manager(user):
+    return user.groups.filter(name='manager').exists()
+
+# @login_required
+# @user_passes_test(is_manager)
+# def add_task(request):
+#     if request.method == 'POST':
+#         form = TaskForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('some_view_name')  # Redirect to a relevant page
+#     else:
+#         form = TaskForm()
+#     return render(request, 'add_task.html', {'form': form})

@@ -42,7 +42,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'apps.home',    # Enable the inner home (home)
-    'dataset'
+    'dataset',
+    'crispy_forms',
 ]
 
 MIDDLEWARE = [
@@ -91,6 +92,8 @@ DATABASES = {
         'NAME': 'mydatabase',
     }
 }
+
+
 # Password validation
 # https://docs.djangoproject.com/en/3.0/ref/settings/#auth-password-validators
 
