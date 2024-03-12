@@ -28,8 +28,10 @@
                         </div>
                     </p>
                     <div class="card-description">
+                        <strong>First Name:</strong> {{ user.first_name }}<br>
                         <strong>Email:</strong> {{ user.email }}<br>
-                        <strong>Role:</strong> {{ user.get_role_display }}<br>
+                        <strong>Last Login:</strong> {{ user.last_login }}<br>
+                        <strong>Role:</strong> {% for group in user.groups.all %}{{ group.name }}{% if not forloop.last %}, {% endif %}{% endfor %}<br>
                         <!-- Additional details you might want to display -->
                     </div>
                 </div>

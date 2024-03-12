@@ -5,6 +5,8 @@ Copyright (c) 2019 - present AppSeed.us
 
 import os, environ
 
+from django.core.checks import database
+
 env = environ.Env(
     # set casting, default value
     DEBUG=(bool, True)
