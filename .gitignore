@@ -10,6 +10,8 @@ __pycache__/
 *.db
 *.sqlite3
 *.log
+*.idea
+
 
 # venv
 env
@@ -29,4 +31,5 @@ staticfiles/*
 apps/static/assets/node_modules
 apps/static/assets/yarn.lock
 apps/static/assets/.temp
+
 
