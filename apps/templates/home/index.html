@@ -6,55 +6,76 @@
 {% block stylesheets %}{% endblock stylesheets %}
 {% block content %}
 <div class="content">
+
+        <!-- First row of cards -->
     <div class="row">
-        <!-- Task Assignment Card -->
+            {% if is_manager or is_control_room_operator %}
+            <!-- Task Assignment Card -->
         <div class="col-lg-6 col-md-6">
             {% if is_manager or is_control_room_operator %}
-
-            <div class="card">
-    <div class="card-header bg-primary text-white">
-        <h5 class="card-title">Assign New Task</h5>
-    </div>
-    <div class="card-body">
-        <form method="post">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="{{ form.title.id_for_label }}">Title:</label>
-                {{ form.title|add_class:"form-control" }} <!-- Apply form-control class -->
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="card-title">Assign New Task</h5>
+                    </div>
+                    <div class="card-body">
+                        <form method="post">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <label for="{{ form.title.id_for_label }}">Title:</label>
+                                {{ form.title|add_class:"form-control" }} <!-- Apply form-control class -->
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.description.id_for_label }}">Description:</label>
+                                {{ form.description|add_class:"form-control" }} <!-- Apply form-control class -->
+                            </div>
+                            <div class="form-group">
+                                <label for="{{ form.assigned_to.id_for_label }}">Assigned to:</label>
+                                {{ form.assigned_to|add_class:"form-control" }}<!-- Apply form-control class -->
+                            </div>
+                            <button type="submit" class="btn btn-primary">Assign Task</button>
+                        </form>
+                    </div>
+                </div>
+                {% endif %}
             </div>
-            <div class="form-group">
-                <label for="{{ form.description.id_for_label }}">Description:</label>
-                {{ form.description|add_class:"form-control" }} <!-- Apply form-control class -->
-            </div>
-            <div class="form-group">
-                <label for="{{ form.assigned_to.id_for_label }}">Assigned to:</label>
-                {{ form.assigned_to|add_class:"form-control" }} <!-- Apply form-control class -->
-            </div>
-            <button type="submit" class="btn btn-primary">Assign Task</button>
-        </form>
-    </div>
-</div>
-
-
             {% endif %}
-        </div>
 
 
-        <!-- Placeholder for another card to the right -->
+        <!-- Recent Notifications Card -->
         <div class="col-lg-6 col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h5 class="title">Another Card</h5>
-                </div>
-                <div class="card-body">
-                    Content for another card goes here...
+                    <div class="card">
+                <div class="card-header bg-warning text-white">
+                        <h5 class="card-title">Recent Notifications</h5>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group list-group-flush">
+                            <!-- Notifications should be dynamically generated here -->
+                            {% for notification in notifications %}
+                            <li class="list-group-item">
+                                {{ notification.message }}
+                                <span class="badge badge-pill badge-primary float-right">
+                                    {{ notification.timestamp|timesince }} ago
+                                </span>
+                            </li>
+                            {% empty %}
+                            <li class="list-group-item">No new notifications.</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-footer">
+                        <small class="text-muted">Last updated 3 mins ago</small>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
+
+
+    <!-- Second row of cards -->
     <div class="row">
-              <!-- Project Tasks Card -->
+        <!-- Project Tasks Card -->
+        <div class="col-lg-6 col-md-6">
+            <!-- Project Tasks Card -->
         <div class="card card-tasks">
             <div class="card-header">
                 <h6 class="title d-inline">Project Tasks ({{ tasks.count }})</h6>
@@ -112,11 +133,48 @@
                 </div>
             </div>
         </div>
-
-
-        <!-- Additional columns/cards can be placed here -->
     </div>
-</div>
+
+
+    <!-- Project Status Card -->
+        <div class="col-lg-6 col-md-6">
+            <div class="card">
+                <div class="card-header bg-info text-white">
+                    <h5 class="card-title
+                    ">Project Status</h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Project</th>
+                                    <th>Tasks</th>
+                                    <th>Progress</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for project in projects %}
+                                <tr>
+                                    <td>{{ project.title }}</td>
+                                    <td>{{ project.tasks.count }}</td>
+                                    <td>
+                                        <div class="progress">
+                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ project.get_progress }}%" aria-valuenow="{{ project.get_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="3">No projects available.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {% endblock content %}
 
 
