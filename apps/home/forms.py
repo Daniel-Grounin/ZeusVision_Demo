@@ -12,6 +12,7 @@ class TaskForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         user = kwargs.pop('user', None)
         super(TaskForm, self).__init__(*args, **kwargs)
+
         if user is not None:
             if user.groups.filter(name='manager').exists():
                 # Managers can assign tasks to anyone: both control room operators and drone operators

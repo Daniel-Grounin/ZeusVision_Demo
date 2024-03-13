@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
-
 {% block title %} Dashboard {% endblock %}
+{% load widget_tweaks %}
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
@@ -8,27 +8,52 @@
 <div class="content">
     <div class="row">
         <!-- Task Assignment Card -->
-        <div class="col-lg-6 col-md-12">
+        <div class="col-lg-6 col-md-6">
             {% if is_manager or is_control_room_operator %}
+
             <div class="card">
-                <div class="card-header">
-                    <h6 class="title d-inline">Assign New Task</h6>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        {% csrf_token %}
-                        {{ form.as_p }}
-                        <!-- Ensure the new field is included if you are manually rendering fields -->
-                        <div class="form-group">
-                            {{ form.group_user_selection.label_tag }}
-                            {{ form.group_user_selection }}
-                        </div>
-                        <button type="submit" class="btn btn-primary">Assign Task</button>
-                    </form>
-                </div>
+    <div class="card-header bg-primary text-white">
+        <h5 class="card-title">Assign New Task</h5>
+    </div>
+    <div class="card-body">
+        <form method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="{{ form.title.id_for_label }}">Title:</label>
+                {{ form.title|add_class:"form-control" }} <!-- Apply form-control class -->
             </div>
+            <div class="form-group">
+                <label for="{{ form.description.id_for_label }}">Description:</label>
+                {{ form.description|add_class:"form-control" }} <!-- Apply form-control class -->
+            </div>
+            <div class="form-group">
+                <label for="{{ form.assigned_to.id_for_label }}">Assigned to:</label>
+                {{ form.assigned_to|add_class:"form-control" }} <!-- Apply form-control class -->
+            </div>
+            <button type="submit" class="btn btn-primary">Assign Task</button>
+        </form>
+    </div>
+</div>
+
+
             {% endif %}
         </div>
+
+
+        <!-- Placeholder for another card to the right -->
+        <div class="col-lg-6 col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="title">Another Card</h5>
+                </div>
+                <div class="card-body">
+                    Content for another card goes here...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
               <!-- Project Tasks Card -->
         <div class="card card-tasks">
             <div class="card-header">
@@ -316,7 +341,8 @@
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
-
+{#<script src="{% static 'path/to/jquery.js' %}"></script>#}
+{#<script src="{% static 'path/to/bootstrap-select.js' %}"></script>#}
 <script>
     $(document).ready(function () {
         // Javascript method's body can be found in assets/js/demos.js
