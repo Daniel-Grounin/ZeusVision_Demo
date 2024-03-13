@@ -2,11 +2,14 @@ from urllib import request
 
 from django import template
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Group
 from django.http import HttpResponse, HttpResponseRedirect
 from django.template import loader
 from django.urls import reverse
 import cv2
+from django.views.decorators.http import require_POST
+from pyexpat.errors import messages
+
 # from .models import YoloData
 from yolo_engine import data_from_yolo
 from ultralytics import YOLO
@@ -14,17 +17,11 @@ from ultralytics import YOLO
 import yolo_engine
 from yolo_engine import video_detection
 from django.http import StreamingHttpResponse
-from django.shortcuts import render
-
-# from rest_framework.views import APIView
-# from rest_framework.response import Response
-# from .models import DroneLocation
+from django.shortcuts import render, get_object_or_404
 
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
-
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 
 
@@ -33,21 +30,41 @@ from django.contrib.auth.decorators import login_required
 yolo_data_str = []
 @login_required
 def index(request):
-    tasks = Task.objects.filter(assigned_to=request.user)
     is_manager = request.user.groups.filter(name='manager').exists()
+    is_control_room_operator = request.user.groups.filter(name='control_room_operator').exists()
 
-    if is_manager and request.method == 'POST':
-        form = TaskForm(request.POST)
-        if form.is_valid():
-            form.save()
-            # Redirect to clear the form or handle as necessary
+    if is_manager:
+        tasks = Task.objects.all()
     else:
-        form = TaskForm()
+        tasks = Task.objects.filter(assigned_to=request.user)
+
+    if request.method == 'POST':
+        if request.POST.get('action') == 'delete_task':
+            # Handle task deletion
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id)
+            # Optional: add additional checks here to ensure the user has permission to delete the task
+            task.delete()
+            # messages.success(request, "Task deleted successfully.")
+            return redirect('home')  # Redirect to the same view to refresh the tasks list
+        else:
+            # Handle task creation
+            form = TaskForm(request.POST, user=request.user)
+            if form.is_valid():
+                task = form.save(commit=False)
+                # Optionally set any additional task attributes here
+                task.save()
+                form.save_m2m()  # Save many-to-many relationships, like assigned_to
+                # messages.success(request, "Task created successfully.")
+                return redirect('home')
+    else:
+        form = TaskForm(user=request.user)  # Pass user to form for custom queryset in assigned_to
 
     context = {
         'tasks': tasks,
         'is_manager': is_manager,
-        'form': form if is_manager else None,
+        'is_control_room_operator': is_control_room_operator,
+        'form': form,
     }
 
     return render(request, 'home/index.html', context)
@@ -170,4 +187,5 @@ from .forms import TaskForm
 
 def is_manager(user):
     return user.groups.filter(name='manager').exists()
+
 

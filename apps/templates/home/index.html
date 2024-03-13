@@ -4,123 +4,95 @@
 
 <!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}{% endblock stylesheets %}
-
 {% block content %}
-    <div class="content">
+<div class="content">
     <div class="row">
+        <!-- Task Assignment Card -->
         <div class="col-lg-6 col-md-12">
-
-        {% if is_manager %}
-    <div class="card">
-        <div class="card-header">
-            <h6 class="title d-inline">Assign New Task</h6>
-        </div>
-        <div class="card-body">
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary">Assign Task</button>
-            </form>
-        </div>
-    </div>
-{% endif %}
-
-
-            <div class="card card-tasks">
-        <div class="card-header ">
-            <h6 class="title d-inline">Project Tasks({{ tasks.count }})</h6>
-            <p class="card-category d-inline">today</p>
-            <!-- Your dropdown and other elements -->
+            {% if is_manager or is_control_room_operator %}
+            <div class="card">
+                <div class="card-header">
+                    <h6 class="title d-inline">Assign New Task</h6>
                 </div>
-                <div class="card-body ">
-                    <div class="table-full-width table-responsive">
-                        <table class="table">
-                            <tbody>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form.as_p }}
+                        <!-- Ensure the new field is included if you are manually rendering fields -->
+                        <div class="form-group">
+                            {{ form.group_user_selection.label_tag }}
+                            {{ form.group_user_selection }}
+                        </div>
+                        <button type="submit" class="btn btn-primary">Assign Task</button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+              <!-- Project Tasks Card -->
+        <div class="card card-tasks">
+            <div class="card-header">
+                <h6 class="title d-inline">Project Tasks ({{ tasks.count }})</h6>
+                <!-- Additional info for managers -->
+            </div>
+            <div class="card-body">
+                <div class="table-full-width table-responsive">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Description</th>
+                                <th>Assigned To</th>
+                                <th class="text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
                             {% for task in tasks %}
-                                <tr>
-                                    <td>
-                                        <div class="form-check">
-                                            <label class="form-check-label">
-                                                <input class="form-check-input" type="checkbox" value="" {% if task.is_completed %}checked{% endif %}>
-                                                <span class="form-check-sign">
-                                                    <span class="check"></span>
-                                                </span>
-                                            </label>
+                            <tr>
+                                <td>{{ task.title }}</td>
+                                <td>{{ task.description }}</td>
+                                <td>
+                                    {% for user in task.assigned_to.all %}
+                                        <div>
+                                            {{ user.username }}
+                                            {% if user.groups.exists %}
+                                                -
+                                                {% for group in user.groups.all %}
+                                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                                {% endfor %}
+                                            {% else %}
+                                                - No Role Assigned
+                                            {% endif %}
                                         </div>
-                                    </td>
-                                    <td>
-                                        <p class="title">{{ task.title }}</p>
-                                        <p class="text-muted">{{ task.description }}</p>
-                                    </td>
-                                    <td class="td-actions text-right">
-                                        <button type="button" rel="tooltip" title="" class="btn btn-link" data-original-title="Edit Task">
-                                            <i class="tim-icons icon-pencil"></i>
+                                    {% empty %}
+                                        <div>Unassigned</div>
+                                    {% endfor %}
+                                </td>
+                                <td class="td-actions text-right">
+                                    <form action="" method="post">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="delete_task">
+                                        <input type="hidden" name="task_id" value="{{ task.id }}">
+                                        <button type="submit" rel="tooltip" title="Delete Task" class="btn btn-danger btn-simple btn-icon">
+                                            <i class="fa fa-times"></i>
                                         </button>
-                                    </td>
-                                </tr>
+                                    </form>
+                                </td>
+                            </tr>
                             {% empty %}
-                                <tr><td colspan="3">No tasks assigned.</td></tr>
+                            <tr><td colspan="4">No tasks assigned.</td></tr>
                             {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-         <div class="col-lg-6 col-md-12">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="card-title">Project Team</h4>
-        </div>
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table tablesorter" id="">
-                    <thead class="text-primary">
-                        <tr>
-                            <th>Team Member</th>
-                            <th>Role</th>
-                            <th>Task</th>
-                            <th class="text-center">Deadline</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td>Alex Morgan</td>
-                            <td>Project Manager</td>
-                            <td>Overall project coordination</td>
-                            <td class="text-center">June 30, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Jamie Lee</td>
-                            <td>Drone Engineer</td>
-                            <td>Drone assembly and maintenance</td>
-                            <td class="text-center">July 15, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Sam Taylor</td>
-                            <td>Software Developer</td>
-                            <td>YOLO integration for object detection</td>
-                            <td class="text-center">August 01, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Chris Redfield</td>
-                            <td>Quality Assurance</td>
-                            <td>Testing and validation</td>
-                            <td class="text-center">August 15, 2024</td>
-                        </tr>
-                        <tr>
-                            <td>Casey Smith</td>
-                            <td>Data Analyst</td>
-                            <td>Data interpretation and analysis</td>
-                            <td class="text-center">September 01, 2024</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+
+
+        <!-- Additional columns/cards can be placed here -->
     </div>
 </div>
-
+{% endblock content %}
 
 
 
@@ -209,7 +181,7 @@
 {#                </div>#}
 {#            </div>#}
 {#        </div>#}
-
+{##}
 {#            <div class="col-lg-6 col-md-12">#}
 {#                <div class="card ">#}
 {#                    <div class="card-header">#}
@@ -341,8 +313,6 @@
 {#            </div>#}
 {#        </div>#}
 {#    </div>#}
-
-{% endblock content %}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
