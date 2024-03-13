@@ -100,12 +100,13 @@ def video_feed(request):
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 
-def map_view(request):
-    # You can add context variables to pass to the template as needed
-    context = {}
-    # Render and return the index.html template
-    return render(request, 'home/map.html', context)
 
+def map2_view(request):
+    # You can add context variables to pass to the template as needed
+    drone_location = (31.249922, 34.789247)
+    context = {'drone_location' : drone_location}
+    # Render and return the index.html template
+    return render(request, 'home/map_mapbox.html', context)
 
 def webcam_view(request):
     # You can add context variables to pass to the template as needed
@@ -170,14 +171,3 @@ from .forms import TaskForm
 def is_manager(user):
     return user.groups.filter(name='manager').exists()
 
-# @login_required
-# @user_passes_test(is_manager)
-# def add_task(request):
-#     if request.method == 'POST':
-#         form = TaskForm(request.POST)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('some_view_name')  # Redirect to a relevant page
-#     else:
-#         form = TaskForm()
-#     return render(request, 'add_task.html', {'form': form})

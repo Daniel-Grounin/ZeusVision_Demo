@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.home',    # Enable the inner home (home)
     'dataset',
-    'crispy_forms',
+    'apps.authentication',  # Enable the inner home (home)
+
 ]
 
 MIDDLEWARE = [
