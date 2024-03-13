@@ -11,7 +11,7 @@ urlpatterns = [
 
     # The home page
     path('', views.index, name='home'),
-    path('map/', views.map_view, name='map'),
+    path('map/', views.map2_view, name='map'),
     path('webcam/', views.webcam_view, name='webcam'),
     path('video_upload/', views.video_upload_view, name='video_upload'),
     path('notifications/', views.notifications_view, name='notifications'),

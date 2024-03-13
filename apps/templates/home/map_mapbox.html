@@ -1,0 +1,44 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Maps{% endblock %}
+
+<!-- Specific Page CSS goes HERE  -->
+{% block stylesheets %}
+<link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
+
+{% endblock stylesheets %}
+
+{% block content %}
+<div class="content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card card-plain">
+        <div class="card-header">
+          Mapbox
+        </div>
+        <div class="card-body">
+          <div id="map" class="map" style='width: 100%; height: 500px;'></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+<!-- Specific Page JS goes HERE  -->
+{% block javascripts %}
+<script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
+<script>
+  mapboxgl.accessToken = 'pk.eyJ1IjoiemV1c3Zpc2lvbjYiLCJhIjoiY2xyeHZhajQxMWdzazJvcGJlM295aTdiZyJ9.Dg07gwHMIpKhAyIPsWQvcQ';
+  var map = new mapboxgl.Map({
+    container: 'map', // container ID
+    style: 'mapbox://styles/mapbox/streets-v11', // style URL
+    center: [{{ drone_location.1 }}, {{ drone_location.0 }}], // starting position [lng, lat]
+    zoom: 9, // starting zoom
+    scrollZoom: false
+
+  });
+
+</script>
+{% endblock javascripts %}
+

@@ -43,7 +43,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.home',    # Enable the inner home (home)
     'dataset',
-
 ]
 
 MIDDLEWARE = [
