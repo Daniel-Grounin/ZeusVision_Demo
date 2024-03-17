@@ -9,7 +9,8 @@
                             <span class="navbar-toggler-bar bar3"></span>
                         </button>
                     </div>
-                    <a class="navbar-brand" href="javascript:void(0)">Dashboard</a>
+                                <a class="navbar-brand" href="javascript:void(0)">Dashboard</a>
+
                 </div>
                 <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navigation"
                         aria-expanded="false" aria-label="Toggle navigation">
@@ -17,6 +18,7 @@
                     <span class="navbar-toggler-bar navbar-kebab"></span>
                     <span class="navbar-toggler-bar navbar-kebab"></span>
                 </button>
+
                 <div class="collapse navbar-collapse" id="navigation">
                     <ul class="navbar-nav ml-auto">
                         <li class="input-group d-flex align-items-center mb-0">
@@ -25,6 +27,7 @@
                                 <span class="slider"></span>
                             </label>
                         </li>
+
                         <li class="search-bar input-group">
                             <button class="btn btn-link" id="search-button" data-toggle="modal"
                                     data-target="#searchModal"><i class="tim-icons icon-zoom-split"></i>
@@ -39,9 +42,14 @@
                                     Notifications
                                 </p>
                             </a>
+
                             <ul class="dropdown-menu dropdown-menu-right dropdown-navbar">
-                                <li class="nav-link"><a href="#" class="nav-item dropdown-item">Mike John responded to
-                                    your email</a></li>
+                                <li class="nav-link"><a href="#" class="nav-item dropdown-item">Welcome {{ user.username}}
+                                    {% for group_name in group_names %}
+                                        <li>you are {{ group_name }}</li>
+                                    {% empty %}
+                                        <li>No group</li>
+                                    {% endfor %} </a></li>
                                 <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">You
                                     have 5 more tasks</a></li>
                                 <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Your
@@ -75,6 +83,15 @@
                         </li>
                         <li class="separator d-lg-none"></li>
                     </ul>
+{#                Welcome message   #}
+                  <a><div class="user-info d-inline">
+                        <span> Welcome, {{ user.username }} - </span>
+                        {% for group_name in group_names %}
+                            <span>{{ group_name }}</span>
+                        {% empty %}
+                            <span>No group</span>
+                        {% endfor %}
+                    </div></a>
                 </div>
             </div>
         </nav>
@@ -87,6 +104,7 @@
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <i class="tim-icons icon-simple-remove"></i>
                         </button>
+
                     </div>
                 </div>
             </div>

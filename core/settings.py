@@ -43,7 +43,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.home',    # Enable the inner home (home)
     'dataset',
-    'widget_tweaks'
+    'widget_tweaks',
+    'apps.authentication',  # Enable the init_auth_group function (for database init)
 
 ]
 
@@ -76,6 +77,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.context_processors.cfg_assets_root',
+                'apps.context_processors.user_groups',
             ],
         },
     },
