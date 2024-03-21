@@ -7,141 +7,173 @@
 {% block content %}
 <div class="content">
 
-        <!-- First row of cards -->
+    <!-- First row of cards -->
     <div class="row">
-            {% if is_manager or is_control_room_operator %}
-            <!-- Task Assignment Card -->
+        {% if is_manager or is_control_room_operator %}
+        <!-- Task Assignment Card -->
         <div class="col-lg-6 col-md-6">
             {% if is_manager or is_control_room_operator %}
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="card-title">Assign New Task</h5>
-                    </div>
-                    <div class="card-body">
-                        <form method="post">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <label for="{{ form.title.id_for_label }}">Title:</label>
-                                {{ form.title|add_class:"form-control" }} <!-- Apply form-control class -->
-                            </div>
-                            <div class="form-group">
-                                <label for="{{ form.description.id_for_label }}">Description:</label>
-                                {{ form.description|add_class:"form-control" }} <!-- Apply form-control class -->
-                            </div>
-                            <div class="form-group">
-                                <label for="{{ form.assigned_to.id_for_label }}">Assigned to:</label>
-                                {{ form.assigned_to|add_class:"form-control" }}<!-- Apply form-control class -->
-                            </div>
-                            <button type="submit" class="btn btn-primary">Assign Task</button>
-                        </form>
-                    </div>
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="card-title">Assign New Task</h5>
                 </div>
-                {% endif %}
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <label for="{{ form.title.id_for_label }}">Title:</label>
+                            {{ form.title|add_class:"form-control" }} <!-- Apply form-control class -->
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.description.id_for_label }}">Description:</label>
+                            {{ form.description|add_class:"form-control" }} <!-- Apply form-control class -->
+                        </div>
+                        <div class="form-group">
+                            <label for="{{ form.assigned_to.id_for_label }}">Assigned to:</label>
+                            {{ form.assigned_to|add_class:"form-control" }}<!-- Apply form-control class -->
+                        </div>
+                        <button type="submit" class="btn btn-primary">Assign Task</button>
+                    </form>
+                </div>
             </div>
             {% endif %}
-
+        </div>
+        {% endif %}
 
         <!-- Recent Notifications Card -->
         <div class="col-lg-6 col-md-6">
-                    <div class="card">
+            <div class="card">
                 <div class="card-header bg-warning text-white">
-                        <h5 class="card-title">Recent Notifications</h5>
-                    </div>
-                    <div class="card-body">
-                        <ul class="list-group list-group-flush">
-                            <!-- Notifications should be dynamically generated here -->
-                            {% for notification in notifications %}
-                            <li class="list-group-item">
-                                {{ notification.message }}
-                                <span class="badge badge-pill badge-primary float-right">
-                                    {{ notification.timestamp|timesince }} ago
-                                </span>
-                            </li>
-                            {% empty %}
-                            <li class="list-group-item">No new notifications.</li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="card-footer">
-                        <small class="text-muted">Last updated 3 mins ago</small>
-                    </div>
+                    <h5 class="card-title">Recent Notifications</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="list-group list-group-flush">
+                        <!-- Notifications should be dynamically generated here -->
+                        {% for notification in notifications %}
+                        <li class="list-group-item">
+                            {{ notification.message }}
+                            <span class="badge badge-pill badge-primary float-right">
+                                {{ notification.timestamp|timesince }} ago
+                            </span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No new notifications.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                <div class="card-footer">
+                    <small class="text-muted">Last updated 3 mins ago</small>
                 </div>
             </div>
         </div>
-
-
+    </div>
 
     <!-- Second row of cards -->
     <div class="row">
         <!-- Project Tasks Card -->
         <div class="col-lg-6 col-md-6">
             <!-- Project Tasks Card -->
-        <div class="card card-tasks">
-            <div class="card-header">
-                <h6 class="title d-inline">Project Tasks ({{ tasks.count }})</h6>
-                <!-- Additional info for managers -->
-            </div>
-            <div class="card-body">
-                <div class="table-full-width table-responsive">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Task</th>
-                                <th>Description</th>
-                                <th>Assigned To</th>
-                                <th class="text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for task in tasks %}
-                            <tr>
-                                <td>{{ task.title }}</td>
-                                <td>{{ task.description }}</td>
-                                <td>
-                                    {% for user in task.assigned_to.all %}
+            <div class="card card-tasks">
+                <div class="card-header">
+                    <h6 class="title d-inline">Project Tasks ({{ tasks.count }})</h6>
+                    <!-- Additional info for managers -->
+                </div>
+                <div class="card-body">
+                    <div class="table-full-width table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Task</th>
+                                    <th>Description</th>
+                                    <th>Assigned To</th>
+                                    <th class="text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for task in tasks %}
+                                <tr>
+                                    <td>{{ task.title }}</td>
+                                    <td>{{ task.description }}</td>
+                                    <td>
+                                        {% for user in task.assigned_to.all %}
                                         <div>
                                             {{ user.username }}
                                             {% if user.groups.exists %}
-                                                -
-                                                {% for group in user.groups.all %}
-                                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
-                                                {% endfor %}
+                                            -
+                                            {% for group in user.groups.all %}
+                                            {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                            {% endfor %}
                                             {% else %}
-                                                - No Role Assigned
+                                            - No Role Assigned
                                             {% endif %}
                                         </div>
-                                    {% empty %}
+                                        {% empty %}
                                         <div>Unassigned</div>
-                                    {% endfor %}
-                                </td>
-                                <td class="td-actions text-right">
-                                    <form action="" method="post">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="delete_task">
-                                        <input type="hidden" name="task_id" value="{{ task.id }}">
-                                        <button type="submit" rel="tooltip" title="Delete Task" class="btn btn-danger btn-simple btn-icon">
-                                            <i class="fa fa-times"></i>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                            {% empty %}
-                            <tr><td colspan="4">No tasks assigned.</td></tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+                                        {% endfor %}
+                                    </td>
+
+                                    <!-- Actions buttons - Start Mission and Delete Task and Pause Mission -->
+                                    <td class="td-actions text-right">
+                                        <div class="d-inline-flex">
+                                            {% if is_drone_operator %} <!-- Check if the user is a drone operator -->
+
+                                            <!-- Start Mission Form -->
+                                            <form action="" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="start_mission">
+                                                <input type="hidden" name="task_id" value="{{ task.id }}">
+                                                <button type="submit" rel="tooltip" title="Start Mission"
+                                                    class="btn btn-success btn-simple btn-icon"
+                                                    style="min-width: 120px;">
+                                                    Start Mission
+                                                </button>
+                                            </form>
+                                            {% endif %}
+
+                                            <!-- Pause Mission Form -->
+                                            <form action="" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="stop_mission">
+                                                <input type="hidden" name="task_id" value="{{ task.id }}">
+                                                <button type="submit" rel="tooltip" title="Stop Mission" class="btn btn-warning btn-simple btn-icon">
+                                                    <i class="fa fa-pause"></i> <!-- Font Awesome pause icon -->
+                                                </button>
+                                            </form>
+
+                                            <!-- Delete Task Form -->
+                                            <form action="" method="post">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="delete_task">
+                                                <input type="hidden" name="task_id" value="{{ task.id }}">
+                                                <button type="submit" rel="tooltip" title="Delete Task"
+                                                    class="btn btn-danger btn-simple btn-icon">
+                                                    <i class="fa fa-times"></i>
+                                                </button>
+                                            </form>
+
+
+
+                                        </div>
+                                    </td>
+
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4">No tasks assigned.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-
-    <!-- Project Status Card -->
+        <!-- Project Status Card -->
         <div class="col-lg-6 col-md-6">
             <div class="card">
                 <div class="card-header bg-info text-white">
-                    <h5 class="card-title
-                    ">Project Status</h5>
+                    <h5 class="card-title ">Project Status</h5>
                 </div>
                 <div class="card-body">
                     <div class="table-responsive">
@@ -160,12 +192,17 @@
                                     <td>{{ project.tasks.count }}</td>
                                     <td>
                                         <div class="progress">
-                                            <div class="progress-bar bg-success" role="progressbar" style="width: {{ project.get_progress }}%" aria-valuenow="{{ project.get_progress }}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            <div class="progress-bar bg-success" role="progressbar"
+                                                style="width: {{ project.get_progress }}%"
+                                                aria-valuenow="{{ project.get_progress }}" aria-valuemin="0"
+                                                aria-valuemax="100"></div>
                                         </div>
                                     </td>
                                 </tr>
                                 {% empty %}
-                                <tr><td colspan="3">No projects available.</td></tr>
+                                <tr>
+                                    <td colspan="3">No projects available.</td>
+                                </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
@@ -175,227 +212,12 @@
         </div>
     </div>
 
+
+
+</div>
+
 {% endblock content %}
 
-
-
-{#        <div class="row">#}
-{#            <div class="col-12">#}
-{#                <div class="card card-chart">#}
-{#                    <div class="card-header ">#}
-{#                        <div class="row">#}
-{#                            <div class="col-sm-6 text-left">#}
-{#                                <h5 class="card-category">Total Shipments</h5>#}
-{#                                <h2 class="card-title">Performance</h2>#}
-{#                            </div>#}
-{#                            <div class="col-sm-6">#}
-{#                                <div class="btn-group btn-group-toggle float-right" data-toggle="buttons">#}
-{#                                    <label class="btn btn-sm btn-primary btn-simple active" id="0">#}
-{#                                        <input type="radio" name="options" checked>#}
-{#                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Accounts</span>#}
-{#                                        <span class="d-block d-sm-none">#}
-{#                        <i class="tim-icons icon-single-02"></i>#}
-{#                    </span>#}
-{#                                    </label>#}
-{#                                    <label class="btn btn-sm btn-primary btn-simple" id="1">#}
-{#                                        <input type="radio" class="d-none d-sm-none" name="options">#}
-{#                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Purchases</span>#}
-{#                                        <span class="d-block d-sm-none">#}
-{#                        <i class="tim-icons icon-gift-2"></i>#}
-{#                    </span>#}
-{#                                    </label>#}
-{#                                    <label class="btn btn-sm btn-primary btn-simple" id="2">#}
-{#                                        <input type="radio" class="d-none" name="options">#}
-{#                                        <span class="d-none d-sm-block d-md-block d-lg-block d-xl-block">Sessions</span>#}
-{#                                        <span class="d-block d-sm-none">#}
-{#                        <i class="tim-icons icon-tap-02"></i>#}
-{#                    </span>#}
-{#                                    </label>#}
-{#                                </div>#}
-{#                            </div>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                    <div class="card-body">#}
-{#                        <div class="chart-area">#}
-{#                            <canvas id="chartBig1"></canvas>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-{#        <div class="row">#}
-{#            <div class="col-lg-4">#}
-{#                <div class="card card-chart">#}
-{#                    <div class="card-header">#}
-{#                        <h5 class="card-category">Total Shipments</h5>#}
-{#                        <h3 class="card-title"><i class="tim-icons icon-bell-55 text-primary"></i> 763,215</h3>#}
-{#                    </div>#}
-{#                    <div class="card-body">#}
-{#                        <div class="chart-area">#}
-{#                            <canvas id="chartLinePurple"></canvas>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="col-lg-4">#}
-{#                <div class="card card-chart">#}
-{#                    <div class="card-header">#}
-{#                        <h5 class="card-category">Daily Sales</h5>#}
-{#                        <h3 class="card-title"><i class="tim-icons icon-delivery-fast text-info"></i> 3,500€</h3>#}
-{#                    </div>#}
-{#                    <div class="card-body">#}
-{#                        <div class="chart-area">#}
-{#                            <canvas id="CountryChart"></canvas>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#            <div class="col-lg-4">#}
-{#                <div class="card card-chart">#}
-{#                    <div class="card-header">#}
-{#                        <h5 class="card-category">Completed Tasks</h5>#}
-{#                        <h3 class="card-title"><i class="tim-icons icon-send text-success"></i> 12,100K</h3>#}
-{#                    </div>#}
-{#                    <div class="card-body">#}
-{#                        <div class="chart-area">#}
-{#                            <canvas id="chartLineGreen"></canvas>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-{##}
-{#            <div class="col-lg-6 col-md-12">#}
-{#                <div class="card ">#}
-{#                    <div class="card-header">#}
-{#                        <h4 class="card-title"> Simple Table</h4>#}
-{#                    </div>#}
-{#                    <div class="card-body">#}
-{#                        <div class="table-responsive">#}
-{#                            <table class="table tablesorter " id="">#}
-{#                                <thead class=" text-primary">#}
-{#                                <tr>#}
-{#                                    <th>#}
-{#                                        Name#}
-{#                                    </th>#}
-{#                                    <th>#}
-{#                                        Country#}
-{#                                    </th>#}
-{#                                    <th>#}
-{#                                        City#}
-{#                                    </th>#}
-{#                                    <th class="text-center">#}
-{#                                        Salary#}
-{#                                    </th>#}
-{#                                </tr>#}
-{#                                </thead>#}
-{#                                <tbody>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Dakota Rice#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Niger#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Oud-Turnhout#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $36,738#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Minerva Hooper#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Curaçao#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Sinaai-Waas#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $23,789#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Sage Rodriguez#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Netherlands#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Baileux#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $56,142#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Philip Chaney#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Korea, South#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Overland Park#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $38,735#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Doris Greene#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Malawi#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Feldkirchen in Kärnten#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $63,542#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Mason Porter#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Chile#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Gloucester#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $78,615#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                <tr>#}
-{#                                    <td>#}
-{#                                        Jon Porter#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Portugal#}
-{#                                    </td>#}
-{#                                    <td>#}
-{#                                        Gloucester#}
-{#                                    </td>#}
-{#                                    <td class="text-center">#}
-{#                                        $98,615#}
-{#                                    </td>#}
-{#                                </tr>#}
-{#                                </tbody>#}
-{#                            </table>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                </div>#}
-{#            </div>#}
-{#        </div>#}
-{#    </div>#}
 
 <!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
