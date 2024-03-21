@@ -133,7 +133,7 @@ def generate_frames_webcam(path_x):
 
 
 def video_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def first_webcam_feed(request):
@@ -141,11 +141,11 @@ def first_webcam_feed(request):
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def third_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=3), content_type='multipart/x-mixed-replace; boundary=frame')
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 
