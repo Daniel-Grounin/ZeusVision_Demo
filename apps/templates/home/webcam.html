@@ -1,35 +1,117 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Icons {% endblock %} 
+{% block title %}UI Icons{% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .webcam-container {
+    padding: 2px; /* Reduced padding inside each webcam container */
+    margin-bottom: 10px; /* Smaller bottom margin between rows */
+  }
+  .fixed-aspect-ratio {
+    position: relative;
+    width: 100%; /* Maintain responsive width */
+    height: 220px; /* Increased height to make the box a bit larger */
+  }
+  .fixed-aspect-ratio img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%; /* Ensures the image covers the full width of the container */
+    height: 100%; /* Ensures the image covers the full height of the container */
+    object-fit: contain; /* Scales the content to fit the container */
+  }
+  .row>[class^="col-"] {
+    padding-right: 5px; /* Smaller right padding */
+    padding-left: 5px; /* Smaller left padding */
+  }
+  .overlay {
+    position: fixed; /* Full-screen overlay */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.9); /* Black background with opacity */
+    z-index: 1050; /* Ensures overlay is above other content */
+    display: none; /* Hidden by default */
+    justify-content: center; /* Center content horizontally */
+    align-items: center; /* Center content vertically */
+    text-align: center;
+  }
+  .overlay img {
+    max-width: 80%; /* Limit image width to avoid being too large */
+    max-height: 80%; /* Limit image height to maintain aspect ratio */
+  }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
-
-  <div class="content">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card">
-          <div class="card-header">
-              <p>webcam page</p>
+<div class="content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body all-icons">
+          <!-- Top row for first two webcams -->
+          <div class="row">
+            <!-- First Webcam Feed -->
+            <div class="col-md-6 webcam-container">
+              <div class="fixed-aspect-ratio">
+                <img src="{% url 'first_webcam_feed' %}" onerror="this.onerror=null; this.src='{{ ASSETS_ROOT }}/img/camera_not_connected.jpg';" alt="First Webcam Feed" class="img-fluid">
+              </div>
+              <p>First Webcam</p>
+              <button onclick="enlargeFeed('{% url 'first_webcam_feed' %}')" class="btn btn-primary">Enlarge Feed</button>
+            </div>
+            <!-- Second Webcam Feed -->
+            <div class="col-md-6 webcam-container">
+              <div class="fixed-aspect-ratio">
+                <img src="{% url 'second_webcam_feed' %}" onerror="this.onerror=null; this.src='{{ ASSETS_ROOT }}/img/camera_not_connected.jpg';" alt="Second Webcam Feed" class="img-fluid">
+              </div>
+              <p>Second Webcam</p>
+              <button onclick="enlargeFeed('{% url 'second_webcam_feed' %}')" class="btn btn-primary">Enlarge Feed</button>
+            </div>
           </div>
-          <div class="card-body all-icons">
-            <div class="row ">
-
-                <div class="">
-                   <img src="{% url 'video_feed' %}" alt="" ></img>
-                </div>
-
-
+          <!-- Bottom row for the third and drone cam feeds -->
+          <div class="row">
+            <!-- Third Webcam Feed -->
+            <div class="col-md-6 webcam-container">
+              <div class="fixed-aspect-ratio">
+                <img src="{% url 'third_webcam_feed' %}" onerror="this.onerror=null; this.src='{{ ASSETS_ROOT }}/img/camera_not_connected.jpg';" alt="Third Webcam Feed" class="img-fluid">
+              </div>
+              <p>Third Webcam</p>
+              <button onclick="enlargeFeed('{% url 'third_webcam_feed' %}')" class="btn btn-primary">Enlarge Feed</button>
+            </div>
+            <!-- Drone Cam Feed -->
+            <div class="col-md-6 webcam-container">
+              <div class="fixed-aspect-ratio">
+                <img src="{% url 'video_feed' %}" onerror="this.onerror=null; this.src='{{ ASSETS_ROOT }}/img/camera_not_connected.jpg';" alt="Drone Cam Feed" class="img-fluid">
+              </div>
+              <p>Drone Cam</p>
+              <button onclick="enlargeFeed('{% url 'video_feed' %}')" class="btn btn-primary">Enlarge Feed</button>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 
+
+<!-- Full-screen overlay for enlarged video feed -->
+<div id="videoOverlay" class="overlay">
+  <img id="overlayFeed" src="" alt="Enlarged Feed">
+  <p><button onclick="closeOverlay()" class="btn btn-danger">Close</button></p>
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script>
+  function enlargeFeed(feedUrl) {
+    document.getElementById('overlayFeed').src = feedUrl; // Set the enlarged feed URL
+    document.getElementById('videoOverlay').style.display = 'flex'; // Show the overlay
+  }
+
+  function closeOverlay() {
+    document.getElementById('videoOverlay').style.display = 'none'; // Hide the overlay
+  }
+</script>
+{% endblock javascripts %}
