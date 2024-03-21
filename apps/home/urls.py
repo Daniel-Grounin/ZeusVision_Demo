@@ -17,6 +17,7 @@ urlpatterns = [
     path('notifications/', views.notifications_view, name='notifications'),
     path('test/', views.test_view, name='test'),
     path('user/', views.user_view, name='user'),
+    path('drone_location/', views.drone_location, name='drone_location'),
     # path('api/drone-location', views.receive_drone_location, name='receive_drone_location'),
 
 

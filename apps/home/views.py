@@ -29,14 +29,19 @@ from django.contrib.auth.decorators import login_required
 
 yolo_data_str = []
 @login_required
+@login_required
 def index(request):
     is_manager = request.user.groups.filter(name='manager').exists()
     is_control_room_operator = request.user.groups.filter(name='control_room_operator').exists()
+    is_drone_operator = request.user.groups.filter(name='drone_operator').exists()  # Check if user is a drone operator
 
     if is_manager:
         tasks = Task.objects.all()
     else:
         tasks = Task.objects.filter(assigned_to=request.user)
+
+    mission_status = False  # Initialize mission status to False
+    drone_name = ""  # Initialize drone name to an empty string
 
     if request.method == 'POST':
         if request.POST.get('action') == 'delete_task':
@@ -47,6 +52,18 @@ def index(request):
             task.delete()
             # messages.success(request, "Task deleted successfully.")
             return redirect('home')  # Redirect to the same view to refresh the tasks list
+        elif request.POST.get('action') == 'start_mission':
+            # Handle starting mission
+            task_id = request.POST.get('task_id')
+            # Add your mission start logic here
+            # For example, you can update the task status to indicate that the mission has started
+            task = get_object_or_404(Task, id=task_id)
+            task.status = 'In Progress'
+            task.save()
+            # Set mission_status to True when mission starts
+            mission_status = True
+            # Set drone_name (example: "UAV 1")
+            drone_name = "UAV 1"  # Change this to the actual drone name
         else:
             # Handle task creation
             form = TaskForm(request.POST, user=request.user)
@@ -57,13 +74,16 @@ def index(request):
                 form.save_m2m()  # Save many-to-many relationships, like assigned_to
                 # messages.success(request, "Task created successfully.")
                 return redirect('home')
-    else:
-        form = TaskForm(user=request.user)  # Pass user to form for custom queryset in assigned_to
+
+    form = TaskForm(user=request.user)  # Pass user to form for custom queryset in assigned_to
 
     context = {
         'tasks': tasks,
         'is_manager': is_manager,
         'is_control_room_operator': is_control_room_operator,
+        'is_drone_operator': is_drone_operator,
+        'mission_status': mission_status,
+        'drone_name': drone_name,
         'form': form,
     }
 
@@ -189,3 +209,18 @@ def is_manager(user):
     return user.groups.filter(name='manager').exists()
 
 
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
+@csrf_exempt
+def drone_location(request):
+    if request.method == 'POST':
+        data = json.loads(request.body.decode('utf-8'))
+        # For debugging, print the data received to the console
+        print(data)
+        # Here you can add code to save the data to your database or process it as needed
+        return JsonResponse({"status": "success", "data_received": data})
+    else:
+        return JsonResponse({"status": "error", "message": "Only POST requests are allowed"}, status=405)
