@@ -47,6 +47,7 @@
                     <h5 class="card-title">Recent Notifications</h5>
                 </div>
                 <div class="card-body">
+                    {% if cat_detections %}
                     <ul class="list-group list-group-flush">
                         <!-- Notifications should be dynamically generated here -->
                         {% for notification in notifications %}
@@ -57,9 +58,10 @@
                             </span>
                         </li>
                         {% empty %}
-                        <li class="list-group-item">No new notifications.</li>
+                        <li class="list-group-item">No new.</li>
                         {% endfor %}
                     </ul>
+
                 </div>
                 <div class="card-footer">
                     <small class="text-muted">Last updated 3 mins ago</small>

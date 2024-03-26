@@ -1,3 +1,6 @@
+from datetime import datetime
+from django.core.cache import cache
+
 from urllib import request
 
 from django import template
@@ -11,7 +14,6 @@ from django.views.decorators.http import require_POST
 from pyexpat.errors import messages
 
 # from .models import YoloData
-from yolo_engine import data_from_yolo
 from ultralytics import YOLO
 
 import yolo_engine
@@ -45,10 +47,15 @@ def index(request):
 
     if request.method == 'POST':
         if request.POST.get('action') == 'delete_task':
+
             # Handle task deletion
             task_id = request.POST.get('task_id')
             task = get_object_or_404(Task, id=task_id)
-            # Optional: add additional checks here to ensure the user has permission to delete the task
+
+            # Check if the task being deleted is the active mission
+            if 'active_mission' in request.session and request.session['active_mission']['task_id'] == str(task.id):
+                del request.session['active_mission']
+            # Proceed with deletion
             task.delete()
             # messages.success(request, "Task deleted successfully.")
             return redirect('home')  # Redirect to the same view to refresh the tasks list
@@ -64,6 +71,20 @@ def index(request):
             mission_status = True
             # Set drone_name (example: "UAV 1")
             drone_name = "UAV 1"  # Change this to the actual drone name
+            request.session['active_mission'] = {
+                'task_id': task_id,
+                'status': 'In Progress',
+                'start_time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')  # Store start time
+            }
+        elif request.POST.get('action') == 'stop_mission':
+            # Handle stopping mission
+            task_id = request.POST.get('task_id')
+            task = get_object_or_404(Task, id=task_id)
+            task.status = 'Stopped'
+            task.save()
+            # Clear the active mission from the session if it's the one being stopped
+            if 'active_mission' in request.session and request.session['active_mission']['task_id'] == task_id:
+                del request.session['active_mission']
         else:
             # Handle task creation
             form = TaskForm(request.POST, user=request.user)
@@ -76,7 +97,7 @@ def index(request):
                 return redirect('home')
 
     form = TaskForm(user=request.user)  # Pass user to form for custom queryset in assigned_to
-
+    detections = cache.get('detections', [])
     context = {
         'tasks': tasks,
         'is_manager': is_manager,
@@ -85,6 +106,7 @@ def index(request):
         'mission_status': mission_status,
         'drone_name': drone_name,
         'form': form,
+        'detections': detections,
     }
 
     return render(request, 'home/index.html', context)
@@ -123,7 +145,6 @@ def generate_frames_webcam(path_x):
     for detection_ in yolo_output:
         ref, buffer = cv2.imencode('.jpg', detection_)
         frame = buffer.tobytes()
-        yolo_data_str=','.join(map(str,data_from_yolo))
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
@@ -169,6 +190,7 @@ def video_upload_view(request):
     context = {}
     # Render and return the index.html template
     return render(request, 'home/newvideoupload.html', context)
+
 
 
 def notifications_view(request):
