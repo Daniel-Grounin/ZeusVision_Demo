@@ -28,8 +28,14 @@
 </head>
 <body class="">
 
+
     <div class="wrapper">
 
+        {% if request.session.active_mission %}
+<div class="alert alert-success" role="alert">
+  Mission <strong>#{{ request.session.active_mission.task_id }}</strong> is currently active since {{ request.session.active_mission.start_time }}.
+</div>
+{% endif %}
         {% include 'includes/sidebar.html' %}
 
         <div class="main-panel">
@@ -42,6 +48,7 @@
 
         </div>
     </div>
+
 
     {% include 'includes/fixed-plugin.html' %}
 

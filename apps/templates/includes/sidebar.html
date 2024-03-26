@@ -10,8 +10,8 @@
                 {% endif %}
                 <!-- Additional mission info -->
                 <div style="margin-top: 10px;">
-                    <div style="font-size: 12px; margin-bottom: 5px;">Mission ID: {{ mission_id }}</div>
-                    <div style="font-size: 12px; margin-bottom: 5px;">Start Time: {{ start_time }}</div>
+                    <div style="font-size: 12px; margin-bottom: 5px;">Mission ID: {{ request.session.active_mission.task_id }}</div>
+                    <div style="font-size: 12px; margin-bottom: 5px;">Start Time: {{ request.session.active_mission.start_time }}</div>
                     <div style="font-size: 12px;">End Time: {{ end_time }}</div>
                 </div>
             </div>

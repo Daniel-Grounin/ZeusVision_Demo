@@ -1,7 +1,10 @@
+from datetime import datetime
+
 from ultralytics import YOLO
 import cv2
 import math
-data_from_yolo = []
+from django.core.cache import cache
+
 def video_detection(path_x):
     video_capture = path_x
     # Create a Webcam Object
@@ -35,7 +38,12 @@ def video_detection(path_x):
                 conf = math.ceil((box.conf[0] * 100)) / 100
                 cls = int(box.cls[0])
                 class_name = classNames[cls]
-                data_from_yolo.append([class_name, conf])
+                if class_name == 'cat':
+                    # Get the current list of detections from the cache
+                    detections = cache.get('detections', [])
+                    detections.append({'class': 'cat', 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+                    # Update the cache with the new list
+                    cache.set('detections', detections, timeout=300)  # Adjust timeout as needed
                 label = f'{class_name}{conf}'
                 t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
                 #print(t_size)
