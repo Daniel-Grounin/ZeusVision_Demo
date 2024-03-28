@@ -40,13 +40,11 @@
                                 </p>
                             </a>
                             <ul class="dropdown-menu dropdown-menu-right dropdown-navbar">
-                                <li class="nav-link"><a href="#" class="nav-item dropdown-item">Detected "Tank" near Drone "UAV 1" </a></li>
-                                <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">You
-                                    have 5 more tasks</a></li>
-                                <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Another
-                                    notification</a></li>
-                                <li class="nav-link"><a href="javascript:void(0)" class="nav-item dropdown-item">Another
-                                    one</a></li>
+                                {% for notification in notifications %}
+                                    <li class="nav-link"><a href="#" class="nav-item dropdown-item">Detected "{{ notification.class }}" at {{ notification.timestamp }}</a></li>
+                                    {% empty %}
+                                    <li class="nav-link"><a href="#" class="nav-item dropdown-item">No new detections</a></li>
+                                {% endfor %}
                             </ul>
                         </li>
                         <li class="dropdown nav-item">

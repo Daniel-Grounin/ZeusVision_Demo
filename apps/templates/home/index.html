@@ -52,9 +52,9 @@
                         <!-- Notifications should be dynamically generated here -->
                         {% for notification in notifications %}
                         <li class="list-group-item">
-                            {{ notification.message }}
+                            {{ notification.class }}
                             <span class="badge badge-pill badge-primary float-right">
-                                {{ notification.timestamp|timesince }} ago
+                                {{ notification.timestamp }}
                             </span>
                         </li>
                         {% empty %}
