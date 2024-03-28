@@ -30,10 +30,10 @@ def video_detection(path_x):
                 conf = math.ceil((box.conf[0] * 100)) / 100
                 cls = int(box.cls[0])
                 class_name = classNames[cls]
-                if class_name == 'cat':
+                if class_name == 'tank':
                     # Get the current list of detections from the cache
                     detections = cache.get('detections', [])
-                    detections.append({'class': 'cat', 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+                    detections.append({'class': 'tank', 'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
                     # Update the cache with the new list
                     cache.set('detections', detections, timeout=300)  # Adjust timeout as needed
                 label = f'{class_name}{conf}'
