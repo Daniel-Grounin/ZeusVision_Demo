@@ -143,10 +143,16 @@ def pages(request):
 def generate_frames_webcam(path_x):
     yolo_output = video_detection(path_x)
     for detection_ in yolo_output:
-        ref, buffer = cv2.imencode('.jpg', detection_)
-        frame = buffer.tobytes()
-        yield (b'--frame\r\n'
-               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+        if detection_ is not None:
+            ref, buffer = cv2.imencode('.jpg', detection_)
+            if ref:
+                frame = buffer.tobytes()
+                yield (b'--frame\r\n'
+                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+            else:
+                pass
+        else:
+            pass
 
 
 
@@ -155,7 +161,7 @@ def generate_frames_webcam(path_x):
 
 def video_feed(request):
     return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def first_webcam_feed(request):
     return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
