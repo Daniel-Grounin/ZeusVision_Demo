@@ -35,6 +35,11 @@ def index(request):
     is_control_room_operator = request.user.groups.filter(name='control_room_operator').exists()
     is_drone_operator = request.user.groups.filter(name='drone_operator').exists()  # Check if user is a drone operator
 
+    # create here users list according to the user group
+    drone_oprators_list = User.objects.filter(groups__name='drone_operator')
+    control_room_operators_list = User.objects.filter(groups__name='control_room_operator')
+
+
     if is_manager:
         tasks = Task.objects.all()
     else:
@@ -85,7 +90,10 @@ def index(request):
         'mission_status': mission_status,
         'drone_name': drone_name,
         'form': form,
+        'drone_oprators_list': drone_oprators_list,
+        'control_room_operators_list': control_room_operators_list,
     }
+    print(control_room_operators_list)
 
     return render(request, 'home/index.html', context)
 
@@ -133,21 +141,8 @@ def generate_frames_webcam(path_x):
 
 
 def video_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
-def first_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
-def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
-def third_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=3), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
+    # return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://10.100.102.11:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 
 def map2_view(request):
