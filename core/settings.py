@@ -43,10 +43,18 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'apps.home',    # Enable the inner home (home)
     'dataset',
-    'widget_tweaks'
+    'widget_tweaks',
+    'channels',
+    'rest_framework'
 
 ]
+ASGI_APPLICATION = 'core.asgi.application'
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels.layers.InMemoryChannelLayer',
+    },
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

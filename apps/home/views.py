@@ -141,37 +141,54 @@ def pages(request):
 
 
 def generate_frames_webcam(path_x):
-    yolo_output = video_detection(path_x)
-    for detection_ in yolo_output:
-        if detection_ is not None:
-            ref, buffer = cv2.imencode('.jpg', detection_)
-            if ref:
-                frame = buffer.tobytes()
-                yield (b'--frame\r\n'
-                        b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
-            else:
-                pass
-        else:
-            pass
+    print(f"Connecting to RTSP URL: {path_x}")
+    cap = cv2.VideoCapture(path_x)
 
+    if not cap.isOpened():
+        print(f"Unable to open video source {path_x}")
+        return
 
+    while cap.isOpened():
+        success, frame = cap.read()
+        if not success:
+            print("Failed to read frame")
+            break
+
+        if frame is None or frame.size == 0:
+            print("Empty frame received")
+            continue
+
+        # Process frame if needed (e.g., using YOLO)
+        # Uncomment and use if you have a video_detection function
+        # yolo_output = video_detection(frame)
+
+        # Encode frame to JPEG
+        ref, buffer = cv2.imencode('.jpg', frame)
+        frame = buffer.tobytes()
+
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+    cap.release()
 
 
 
 
 def video_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
     #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def first_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
+    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    rtsp_url = "rtsp://user:pass@192.168.137.239:8554/streaming/live/1"
+    # return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(rtsp_url), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def third_webcam_feed(request):
+    rtsp_url = "rtsp://user:pass@192.168.137.157:1935/live"
     return StreamingHttpResponse(generate_frames_webcam(path_x=3), content_type='multipart/x-mixed-replace; boundary=frame')
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
@@ -264,3 +281,6 @@ def drone_location(request):
         return JsonResponse({"status": "success", "data_received": data})
     else:
         return JsonResponse({"status": "error", "message": "Only POST requests are allowed"}, status=405)
+
+
+
