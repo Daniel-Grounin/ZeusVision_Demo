@@ -26,7 +26,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth.decorators import login_required
 
-
+# Import the server socket class
+from .ServerSocket import run_server
+from . import ServerSocket
 
 
 yolo_data_str = []
@@ -195,10 +197,9 @@ def third_webcam_feed(request):
 
 
 def map2_view(request):
-    # You can add context variables to pass to the template as needed
-    drone_location = (31.249922, 34.789247)
-    context = {'drone_location' : drone_location}
-    # Render and return the index.html template
+    # Retrieve the latest drone location from the cache
+    drone_location = cache.get('drone_location', (0.0, 0.0))  # Default to (0.0, 0.0) if no data
+    context = {'drone_location': drone_location}
     return render(request, 'home/map_mapbox.html', context)
 
 def webcam_view(request):
@@ -271,16 +272,24 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 @csrf_exempt
-def drone_location(request):
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        # For debugging, print the data received to the console
-        print(data)
-        # Here you can add code to save the data to your database or process it as needed
-        return JsonResponse({"status": "success", "data_received": data})
+def get_drone_location(request):
+    if request.method == 'GET':
+        # Retrieve the latest drone location from the cache
+        drone_location = cache.get('drone_location', (0.0, 0.0))  # Default to (0.0, 0.0) if no data
+        return JsonResponse({
+            'latitude': drone_location[0],
+            'longitude': drone_location[1]
+        })
     else:
-        return JsonResponse({"status": "error", "message": "Only POST requests are allowed"}, status=405)
+        return JsonResponse({"status": "error", "message": "Only GET requests are allowed"}, status=405)
 
 
 
+
+#run_server()

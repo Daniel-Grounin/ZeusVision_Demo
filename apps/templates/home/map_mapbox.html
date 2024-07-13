@@ -35,10 +35,37 @@
     style: 'mapbox://styles/mapbox/streets-v11', // style URL
     center: [{{ drone_location.1 }}, {{ drone_location.0 }}], // starting position [lng, lat]
     zoom: 9, // starting zoom
-    scrollZoom: false
+    scrollZoom: true
 
   });
 
+  // Add a red marker to the map at the drone's location
+    var marker = new mapboxgl.Marker({
+        color: "#FF0000",
+        draggable: false,
+        scale: 0.7
+    })
+    .setLngLat([{{ drone_location.1 }}, {{ drone_location.0 }}])
+    .addTo(map);
+
+
+
+
+
+   // Function to update the drone location
+  function updateDroneLocation() {
+    fetch('/get_drone_location/')
+      .then(response => response.json())
+      .then(data => {
+        var newLngLat = [data.longitude, data.latitude];
+        marker.setLngLat(newLngLat);
+        map.setCenter(newLngLat);
+      })
+      .catch(error => console.error('Error fetching drone location:', error));
+  }
+
+  // Update the drone location every 5 seconds
+  setInterval(updateDroneLocation, 5000);
 </script>
 {% endblock javascripts %}
 
