@@ -52,7 +52,7 @@
                         <!-- Notifications should be dynamically generated here -->
                         {% for notification in notifications %}
                         <li class="list-group-item">
-                            {{ notification.class }}
+                            {{ notification.class }} {{notification.confidence}}
                             <span class="badge badge-pill badge-primary float-right">
                                 {{ notification.timestamp }}
                             </span>
@@ -64,7 +64,7 @@
 
                 </div>
                 <div class="card-footer">
-                    <small class="text-muted">Last updated 3 mins ago</small>
+                    <small class="text-muted">Last updated 1 mins ago</small>
                 </div>
             </div>
         </div>

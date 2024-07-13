@@ -26,7 +26,9 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.contrib.auth.decorators import login_required
 
-
+# Import the server socket class
+from .ServerSocket import run_server
+from . import ServerSocket
 
 
 yolo_data_str = []
@@ -141,41 +143,63 @@ def pages(request):
 
 
 def generate_frames_webcam(path_x):
-    yolo_output = video_detection(path_x)
-    for detection_ in yolo_output:
-        ref, buffer = cv2.imencode('.jpg', detection_)
+    print(f"Connecting to RTSP URL: {path_x}")
+    cap = cv2.VideoCapture(path_x)
+
+    if not cap.isOpened():
+        print(f"Unable to open video source {path_x}")
+        return
+
+    while cap.isOpened():
+        success, frame = cap.read()
+        if not success:
+            print("Failed to read frame")
+            break
+
+        if frame is None or frame.size == 0:
+            print("Empty frame received")
+            continue
+
+        # Process frame if needed (e.g., using YOLO)
+        # Uncomment and use if you have a video_detection function
+        # yolo_output = video_detection(frame)
+
+        # Encode frame to JPEG
+        ref, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
+
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
-
+    cap.release()
 
 
 
 
 def video_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
+    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def first_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
+    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
-    # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    rtsp_url = "rtsp://user:pass@192.168.137.239:8554/streaming/live/1"
+    # return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(rtsp_url), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def third_webcam_feed(request):
+    rtsp_url = "rtsp://user:pass@192.168.137.157:1935/live"
     return StreamingHttpResponse(generate_frames_webcam(path_x=3), content_type='multipart/x-mixed-replace; boundary=frame')
     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 
 
 def map2_view(request):
-    # You can add context variables to pass to the template as needed
-    drone_location = (31.249922, 34.789247)
-    context = {'drone_location' : drone_location}
-    # Render and return the index.html template
+    # Retrieve the latest drone location from the cache
+    drone_location = cache.get('drone_location', (0.0, 0.0))  # Default to (0.0, 0.0) if no data
+    context = {'drone_location': drone_location}
     return render(request, 'home/map_mapbox.html', context)
 
 def webcam_view(request):
@@ -248,13 +272,24 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
 
+
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 @csrf_exempt
-def drone_location(request):
-    if request.method == 'POST':
-        data = json.loads(request.body.decode('utf-8'))
-        # For debugging, print the data received to the console
-        print(data)
-        # Here you can add code to save the data to your database or process it as needed
-        return JsonResponse({"status": "success", "data_received": data})
+def get_drone_location(request):
+    if request.method == 'GET':
+        # Retrieve the latest drone location from the cache
+        drone_location = cache.get('drone_location', (0.0, 0.0))  # Default to (0.0, 0.0) if no data
+        return JsonResponse({
+            'latitude': drone_location[0],
+            'longitude': drone_location[1]
+        })
     else:
-        return JsonResponse({"status": "error", "message": "Only POST requests are allowed"}, status=405)
+        return JsonResponse({"status": "error", "message": "Only GET requests are allowed"}, status=405)
+
+
+
+
+#run_server()
