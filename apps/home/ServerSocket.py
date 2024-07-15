@@ -31,6 +31,7 @@ class ServerSocket:
                 self.process_data(data.decode('utf-8'))
 
     def process_data(self, data):
+        self.store_message(data)
         # Extract latitude, longitude, and altitude from the string
         try:
             parts = data.strip().split(", ")
@@ -41,11 +42,20 @@ class ServerSocket:
 
             # Update the location in the Django cache
             self.update_drone_location(lat, lon, alt)
+            # Store the message in the Django cache
         except (IndexError, ValueError) as e:
             print(f"Error processing data: {e}")
 
     def update_drone_location(self, lat, lon, alt):
-        cache.set('drone_location', (lat, lon))
+        cache.set('drone_location', (lat, lon,alt))
+
+    def store_message(self, message):
+        # Retrieve current messages from cache, default to an empty list if none
+        messages = cache.get('drone_messages', [])
+        # Add the new message
+        messages.append(message)
+        # Store the updated list back in the cache
+        cache.set('drone_messages', messages)
 
 
 # Run the server socket in a separate thread

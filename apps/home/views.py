@@ -32,7 +32,7 @@ from . import ServerSocket
 
 
 yolo_data_str = []
-@login_required
+
 @login_required
 def index(request):
     is_manager = request.user.groups.filter(name='manager').exists()
@@ -185,7 +185,7 @@ def first_webcam_feed(request):
     #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def second_webcam_feed(request):
-    rtsp_url = "rtsp://user:pass@192.168.137.239:8554/streaming/live/1"
+    rtsp_url = "rtsp://user:pass@192.168.137.161:8554/streaming/live/1"
     # return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
     return StreamingHttpResponse(generate_frames_webcam(rtsp_url), content_type='multipart/x-mixed-replace; boundary=frame')
 
@@ -196,19 +196,25 @@ def third_webcam_feed(request):
 
 
 
+@login_required
 def map2_view(request):
     # Retrieve the latest drone location from the cache
     drone_location = cache.get('drone_location', (0.0, 0.0))  # Default to (0.0, 0.0) if no data
-    context = {'drone_location': drone_location}
+    drone_messages = cache.get('drone_messages', [])  # Retrieve messages from cache
+    context = {
+        'drone_location': drone_location,
+        'drone_messages': drone_messages
+    }
     return render(request, 'home/map_mapbox.html', context)
 
+@login_required
 def webcam_view(request):
     # You can add context variables to pass to the template as needed
     context = {}
     # Render and return the index.html template
     return render(request, 'home/webcam.html', context)
 
-
+@login_required
 def video_upload_view(request):
     # You can add context variables to pass to the template as needed
     context = {}
@@ -217,6 +223,7 @@ def video_upload_view(request):
 
 
 
+@login_required
 def notifications_view(request):
     # You can add context variables to pass to the template as needed
     context = {}
@@ -224,27 +231,7 @@ def notifications_view(request):
     return render(request, 'home/notifications.html', context)
 
 
-def test_view(request):
-    context = {}
-    if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            latitude = data.get('latitude')
-            longitude = data.get('longitude')
-            altitude = data.get('altitude')
-            # Process the data, for example, save it to the database or log it.
-            print('*****')
-            print(latitude)
-            # Print success message to terminal
-            print("Success: Received drone location data.")
-
-            print(JsonResponse({'status': 'success'}, status=200))
-            return render(request, 'home/test.html', context)
-        except Exception as e:
-            print(JsonResponse({'status': 'error', 'message': str(e)}, status=400))
-    return render(request, 'home/test.html', context)
-
-
+@login_required
 def user_view(request):
     # request.user contains the currently logged-in user
     user = request.user
@@ -291,5 +278,11 @@ def get_drone_location(request):
 
 
 
-
+def get_drone_messages(request):
+    if request.method == 'GET':
+        # Retrieve the latest drone messages from wherever they are stored
+        drone_messages = cache.get('drone_messages', [])  # Assume messages are stored in cache
+        return JsonResponse({'messages': drone_messages})
+    else:
+        return JsonResponse({"status": "error", "message": "Only GET requests are allowed"}, status=405)
 #run_server()
