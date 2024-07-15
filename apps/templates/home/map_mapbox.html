@@ -2,10 +2,57 @@
 
 {% block title %}Maps{% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
 {% block stylesheets %}
 <link href='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.css' rel='stylesheet' />
-
+<style>
+  /* Style for the sidebar */
+  #drone-messages-sidebar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 300px;
+    height: 300px;
+    background-color: #f1f1f1;
+      color: #0a0c0d;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    overflow-y: auto;
+    padding: 10px;
+    display: none; /* Initially hidden */
+    z-index: 1000;
+    border-radius: 8px;
+    margin-top: 10px;
+  }
+  #drone-messages-sidebar h4 {
+    margin-top: 0;
+    font-size: 1.2em;
+    text-align: center;
+  }
+  #drone-messages {
+    list-style-type: none;
+    padding-left: 0;
+  }
+  #drone-messages li {
+    margin-bottom: 10px;
+    background: #ffffff;
+    color: #000000;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  }
+  #open-sidebar-btn {
+    position: absolute;
+    right: 20px;
+    bottom: 320px; /* Adjust this value to position the button under the map */
+    background-color: #007bff;
+    color: #ffffff;
+    border: none;
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 8px;
+    z-index: 1000;
+  }
+</style>
 {% endblock stylesheets %}
 
 {% block content %}
@@ -22,37 +69,46 @@
       </div>
     </div>
   </div>
+<div class="card-body">
+            <div class="alert alert-info">
+              <span>Drone altitude - </b> {{ drone_location.2 }}</span>
+            </div>
+
+  <!-- Button to open the sidebar -->
+  <button id="open-sidebar-btn">Drone Messages</button>
+
+  <!-- Sidebar for drone messages -->
+  <div id="drone-messages-sidebar">
+    <span id="close-sidebar">✖</span>
+    <h4>Drone Messages</h4>
+    <ul id="drone-messages">
+      {% for message in drone_messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  </div>
 </div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
 {% block javascripts %}
 <script src='https://api.mapbox.com/mapbox-gl-js/v2.9.1/mapbox-gl.js'></script>
 <script>
   mapboxgl.accessToken = 'pk.eyJ1IjoiemV1c3Zpc2lvbjYiLCJhIjoiY2xyeHZhajQxMWdzazJvcGJlM295aTdiZyJ9.Dg07gwHMIpKhAyIPsWQvcQ';
   var map = new mapboxgl.Map({
-    container: 'map', // container ID
-    style: 'mapbox://styles/mapbox/streets-v11', // style URL
-    center: [{{ drone_location.1 }}, {{ drone_location.0 }}], // starting position [lng, lat]
-    zoom: 9, // starting zoom
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [{{ drone_location.1 }}, {{ drone_location.0 }}],
+    zoom: 9,
     scrollZoom: true
-
   });
 
-  // Add a red marker to the map at the drone's location
-    var marker = new mapboxgl.Marker({
-        color: "#FF0000",
-        draggable: false,
-        scale: 0.7
-    })
-    .setLngLat([{{ drone_location.1 }}, {{ drone_location.0 }}])
+  var marker = new mapboxgl.Marker({
+      color: "#FF0000",
+      draggable: false,
+      scale: 0.7
+  }).setLngLat([{{ drone_location.1 }}, {{ drone_location.0 }}])
     .addTo(map);
 
-
-
-
-
-   // Function to update the drone location
   function updateDroneLocation() {
     fetch('/get_drone_location/')
       .then(response => response.json())
@@ -64,8 +120,32 @@
       .catch(error => console.error('Error fetching drone location:', error));
   }
 
-  // Update the drone location every 5 seconds
+  function updateDroneMessages() {
+    fetch('/get_drone_messages/')
+      .then(response => response.json())
+      .then(data => {
+        var messageList = document.getElementById('drone-messages');
+        messageList.innerHTML = '';
+        data.messages.forEach(message => {
+          var listItem = document.createElement('li');
+          listItem.textContent = message;
+          messageList.appendChild(listItem);
+        });
+      })
+      .catch(error => console.error('Error fetching drone messages:', error));
+  }
+
+  // Handle sidebar open button click
+  document.getElementById('open-sidebar-btn').addEventListener('click', function() {
+    document.getElementById('drone-messages-sidebar').style.display = 'block';
+  });
+
+  // Handle sidebar close button click
+  document.getElementById('close-sidebar').addEventListener('click', function() {
+    document.getElementById('drone-messages-sidebar').style.display = 'none';
+  });
+
   setInterval(updateDroneLocation, 5000);
+  setInterval(updateDroneMessages, 5000);
 </script>
 {% endblock javascripts %}
-

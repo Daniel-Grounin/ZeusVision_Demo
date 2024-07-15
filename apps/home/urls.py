@@ -15,9 +15,9 @@ urlpatterns = [
     path('webcam/', views.webcam_view, name='webcam'),
     path('video_upload/', views.video_upload_view, name='video_upload'),
     path('notifications/', views.notifications_view, name='notifications'),
-    path('test/', views.test_view, name='test'),
     path('user/', views.user_view, name='user'),
     path('get_drone_location/', views.get_drone_location, name='get_drone_location'),
+    path('get_drone_messages/', views.get_drone_messages, name='get_drone_messages'),
     # path('api/drone-location', views.receive_drone_location, name='receive_drone_location'),
 
 
