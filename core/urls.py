@@ -12,10 +12,8 @@ urlpatterns = [
     # ADD NEW Routes HERE
     path('admin/', admin.site.urls),          # Django admin route
     path("", include("apps.authentication.urls")), # Auth routes - login / register
-    path('video_feed', apps.home.views.video_feed, name='video_feed'),
     path('first_webcam_feed', apps.home.views.first_webcam_feed, name='first_webcam_feed'),
     path('second_webcam_feed', apps.home.views.second_webcam_feed, name='second_webcam_feed'),
-    path('third_webcam_feed', apps.home.views.third_webcam_feed, name='third_webcam_feed'),
 
 
 
