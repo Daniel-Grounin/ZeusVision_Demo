@@ -1,38 +1,153 @@
 {% extends "layouts/base.html" %}
 
-{% block title %} UI Icons {% endblock %} 
+{% block title %} Video Upload {% endblock %}
 
-<!-- Specific Page CSS goes HERE  -->
-{% block stylesheets %}{% endblock stylesheets %}
+{% block stylesheets %}
+<style>
+  .content {
+    margin-top: 20px;
+  }
+  .detections {
+    margin-top: 20px;
+  }
+  #loading {
+    display: none;
+    text-align: center;
+  }
+  .video-gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .video-thumb {
+    width: 120px;
+    cursor: pointer;
+  }
+  .video-thumb img {
+    width: 100%;
+  }
+  #progress-container {
+    display: none;
+    text-align: center;
+    margin-top: 20px;
+  }
+  #progress-bar {
+    width: 0%;
+    height: 20px;
+    background-color: #4caf50;
+  }
+  .video-container {
+    margin-top: 20px;
+  }
+</style>
+{% endblock stylesheets %}
 
 {% block content %}
-
-  <div class="content">
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card">
-          <div class="card-header">
-            <h5 class="title">100 Awesome Nucleo Icons</h5>
-            <p class="category">Handcrafted by our friends from <a href="https://nucleoapp.com/?ref=1712">NucleoApp</a></p>
-          </div>
-          <div class="card-body all-icons">
-            <div class="row">
-
-              <div class="font-icon-list col-lg-2 col-md-3 col-sm-4 col-xs-6 col-xs-6">
-                <div class="font-icon-detail">
-                  <i class="tim-icons icon-alert-circle-exc"></i>
-                  <p>icon-alert-circle-exc</p>
-                </div>
-              </div>
-
+<div class="content">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="title">Upload Video for Detection</h5>
+        </div>
+        <div class="card-body">
+          <form method="POST" enctype="multipart/form-data" id="videoUploadForm">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <p id="fileName"></p>
+            <button type="submit" class="btn btn-primary">Upload</button>
+          </form>
+          <div id="loading">
+            <p>Processing video, please wait...</p>
+            <div class="spinner-border" role="status">
+              <span class="sr-only">Loading...</span>
             </div>
+          </div>
+          <div id="progress-container">
+            <p>Processing progress:</p>
+            <div id="progress-bar"></div>
+          </div>
+          <div class="video-container">
+            <h5>Processed Video</h5>
+            <video id="videoPlayer" width="100%" controls>
+              {% if processed_file_url %}
+                <source src="{{ processed_file_url }}" type="video/mp4">
+              {% else %}
+                <source src="" type="video/mp4">
+              {% endif %}
+              Your browser does not support the video tag.
+            </video>
+          </div>
+          <div class="detections">
+            <h5>Detections:</h5>
+            <ul id="detectionList">
+              {% for detection in detections %}
+                <li>{{ detection.class }} with confidence {{ detection.confidence }} at {{ detection.timestamp }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+          <div class="video-gallery">
+            {% for video in video_files %}
+              <div class="video-thumb" onclick="showVideo('{{ video }}')">
+                <img src="/media/thumbnails/{{ video|slice:":-4" }}.png" alt="{{ video }}">
+                <p>{{ video }}</p>
+              </div>
+            {% endfor %}
           </div>
         </div>
       </div>
     </div>
   </div>
-
+</div>
 {% endblock content %}
 
-<!-- Specific Page JS goes HERE  -->
-{% block javascripts %}{% endblock javascripts %}
+{% block javascripts %}
+<script>
+  document.getElementById('videoInput').addEventListener('change', function() {
+    const fileName = this.files[0].name;
+    document.getElementById('fileName').innerText = `Selected file: ${fileName}`;
+  });
+
+  document.getElementById('videoUploadForm').addEventListener('submit', function() {
+    document.getElementById('loading').style.display = 'block';
+    document.getElementById('progress-container').style.display = 'block';
+    updateProgress();
+  });
+
+  function updateProgress() {
+    fetch("{% url 'get_processing_progress' %}")
+      .then(response => response.json())
+      .then(data => {
+        const progress = data.progress;
+        document.getElementById('progress-bar').style.width = progress + '%';
+        if (progress < 100) {
+          setTimeout(updateProgress, 1000); // Update progress every second
+        } else {
+          document.getElementById('loading').style.display = 'none';
+        }
+      });
+  }
+
+  function showVideo(video) {
+    const videoPlayer = document.getElementById('videoPlayer');
+    videoPlayer.src = `/media/${video}`;
+    videoPlayer.load();
+    fetchDetections(video);
+  }
+
+  function fetchDetections(video) {
+    fetch(`/get_detections/?video=${video}`)
+      .then(response => response.json())
+      .then(data => {
+        const detectionList = document.getElementById('detectionList');
+        detectionList.innerHTML = '';
+        data.detections.forEach(detection => {
+          const li = document.createElement('li');
+          li.textContent = `${detection.class} with confidence ${detection.confidence} at ${detection.timestamp}`;
+          detectionList.appendChild(li);
+        });
+      });
+  }
+</script>
+{% endblock javascripts %}

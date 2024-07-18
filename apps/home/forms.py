@@ -28,3 +28,7 @@ class TaskForm(forms.ModelForm):
             else:
                 # If it's neither a manager nor a control room operator, clear the queryset
                 self.fields['assigned_to'].queryset = User.objects.none()
+
+
+class VideoUploadForm(forms.Form):
+    video = forms.FileField(label='Select a video file')

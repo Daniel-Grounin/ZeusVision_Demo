@@ -5,7 +5,8 @@ Copyright (c) 2019 - present AppSeed.us
 
 from django.urls import path, re_path, include
 from apps.home import views
-
+from core import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
 
@@ -20,15 +21,10 @@ urlpatterns = [
     path('get_drone_messages/', views.get_drone_messages, name='get_drone_messages'),
     # path('api/drone-location', views.receive_drone_location, name='receive_drone_location'),
 
-
-
-
-
-
     # Matches any html file
     # re_path(r'^.*\.*', views.pages, name='pages'),
     # path('video_feed', views.video_feed, name='video_feed'),
 
-
-
 ]
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

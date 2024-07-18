@@ -286,3 +286,158 @@ def get_drone_messages(request):
     else:
         return JsonResponse({"status": "error", "message": "Only GET requests are allowed"}, status=405)
 #run_server()
+
+
+
+
+import os
+import cv2
+import math
+from datetime import datetime
+from django.core.files.storage import FileSystemStorage
+from django.shortcuts import render
+from .forms import VideoUploadForm
+from ultralytics import YOLO
+from django.http import JsonResponse
+from django.core.cache import cache
+
+
+def video_upload_view(request):
+    if request.method == 'POST':
+        form = VideoUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            video_file = form.cleaned_data['video']
+            fs = FileSystemStorage()
+            filename = fs.save(video_file.name, video_file)
+            video_length = get_video_length(fs.path(filename))  # Get video length
+            request.session['video_length'] = video_length  # Store video length in session
+            processed_file_url = process_video(fs.path(filename), fs, request)
+            detections = extract_detections(processed_file_url)
+            generate_thumbnails(fs.location)  # Generate thumbnails
+            video_files = get_video_files(fs.location)
+            return render(request, 'home/newvideoupload.html', {
+                'form': form,
+                'processed_file_url': processed_file_url,
+                'detections': detections,
+                'video_files': video_files,
+            })
+    else:
+        form = VideoUploadForm()
+        fs = FileSystemStorage()
+        generate_thumbnails(fs.location)  # Generate thumbnails
+        video_files = get_video_files(fs.location)
+    return render(request, 'home/newvideoupload.html', {'form': form, 'video_files': video_files})
+
+
+def get_video_length(video_path):
+    cap = cv2.VideoCapture(video_path)
+    length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
+    cap.release()
+    return length
+
+
+def process_video(video_path, fs, request):
+    cap = cv2.VideoCapture(video_path)
+    model = YOLO("../ZeusVision_Demo/best3.pt")
+    classNames = ["tank", "teddy bear", "0", "1"]
+    detections = []
+
+    frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+    frame_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+    output_path = video_path.replace('.mp4', '_processed.mp4')
+
+    # Ensure the file name is unique if needed
+    if os.path.exists(output_path):
+        output_path = video_path.replace('.mp4', f'_processed_{datetime.now().strftime("%Y%m%d%H%M%S")}.mp4')
+
+    # Use H.264 codec (which is widely supported in browsers) and MP4 container
+    fourcc = cv2.VideoWriter.fourcc(*'avc1')  # H.264 codec
+    out = cv2.VideoWriter(output_path, fourcc, 10, (frame_width, frame_height))
+
+    video_length = request.session.get('video_length', 1)  # Default to 1 to avoid division by zero
+    processed_frames = 0
+
+    while cap.isOpened():
+        success, img = cap.read()
+        if not success:
+            break
+
+        results = model(img, stream=True)
+        for r in results:
+            boxes = r.boxes
+            for box in boxes:
+                x1, y1, x2, y2 = box.xyxy[0]
+                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+                conf = math.ceil((box.conf[0] * 100)) / 100
+                cls = int(box.cls[0])
+                class_name = classNames[cls]
+                if conf >= 0.7:
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
+                    label = f'{class_name} {conf}'
+                    t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
+                    c2 = x1 + t_size[0], y1 - t_size[1] - 3
+                    cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)
+                    cv2.putText(img, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
+
+                    if class_name == 'tank':
+                        detections.append({'class': 'tank', 'confidence': conf,
+                                           'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+
+        out.write(img)
+        processed_frames += 1
+        progress = int((processed_frames / video_length) * 100)
+        cache.set('video_processing_progress', progress)  # Store progress in cache
+
+    cap.release()
+    out.release()
+
+    # Save processed video
+    with open(output_path, 'rb') as f:
+        filename = fs.save(output_path.split('/')[-1], f)
+    cache.set(f'detections_{filename}', detections)  # Cache detections for this video
+    return fs.url(filename)
+
+
+
+def extract_detections(processed_video_url):
+    return []
+
+
+def get_video_files(media_root):
+    video_extensions = ['.mp4', '.avi', '.mov']
+    video_files = []
+    for root, dirs, files in os.walk(media_root):
+        for file in files:
+            if any(file.endswith(ext) for ext in video_extensions):
+                video_files.append(os.path.join(root, file))
+    return [os.path.basename(video) for video in video_files]
+
+
+def generate_thumbnails(media_root):
+    video_extensions = ['.mp4', '.avi', '.mov']
+    thumbnail_dir = os.path.join(media_root, 'thumbnails')
+    os.makedirs(thumbnail_dir, exist_ok=True)
+
+    for root, dirs, files in os.walk(media_root):
+        for file in files:
+            if any(file.endswith(ext) for ext in video_extensions):
+                video_path = os.path.join(root, file)
+                thumbnail_path = os.path.join(thumbnail_dir, f'{os.path.splitext(file)[0]}.png')
+
+                if not os.path.exists(thumbnail_path):
+                    cap = cv2.VideoCapture(video_path)
+                    success, frame = cap.read()
+                    if success:
+                        cv2.imwrite(thumbnail_path, frame)
+                    cap.release()
+
+
+def get_processing_progress(request):
+    progress = cache.get('video_processing_progress', 0)
+    return JsonResponse({'progress': progress})
+
+
+def get_detections(request):
+    video = request.GET.get('video')
+    detections = cache.get(f'detections_{video}', [])
+    return JsonResponse({'detections': detections})
