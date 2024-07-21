@@ -1,55 +1,48 @@
 from datetime import datetime
-
 from ultralytics import YOLO
 import cv2
 import math
 from django.core.cache import cache
 
+# Load the YOLO model once globally
+model = YOLO("../ZeusVision_Demo/models/best_IDF_tank.pt")
+# classNames = ["0"]  # Ensure the class names match your trained model
+classNames = ["Cow", "Hamer", "Nagmash", "Person", "Tender", "Tank"]  # Ensure the class names match your trained model
 
-def video_detection(path_x):
-    video_capture = path_x
-    # Create a Webcam Object
-    cap = cv2.VideoCapture(video_capture)
-    frame_width = int(cap.get(3))
-    frame_height = int(cap.get(4))
-    # out=cv2.VideoWriter('output.avi', cv2.VideoWriter_fourcc('M', 'J', 'P','G'), 10, (frame_width, frame_height))
+def video_detection(frame):
+    # Perform YOLO detection on the given frame
+    results = model(frame, stream=True)
 
-    model = YOLO("../ZeusVision_Demo/best3.pt")
-    classNames = ["tank", "teddy bear", "0", "1"
-                  ]
-    while True:
-        success, img = cap.read()
-        results = model(img, stream=True)
-        for r in results:
-            boxes = r.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                # print(x1, y1, x2, y2)
-                conf = math.ceil((box.conf[0] * 100)) / 100
-                cls = int(box.cls[0])
-                class_name = classNames[cls]
-                if conf >= 0.7:
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-                    label = f'{class_name}{conf}'
-                    t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
-                    c2 = x1 + t_size[0], y1 - t_size[1] - 3
-                    cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)  # filled
-                    cv2.putText(img, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
+    for r in results:
+        boxes = r.boxes
+        for box in boxes:
+            # Extract coordinates and ensure they are within the frame dimensions
+            x1, y1, x2, y2 = box.xyxy[0]
+            x1, y1, x2, y2 = map(int, [x1, y1, x2, y2])
 
-                    # Cache the detection if it's a 'tank'
-                    if class_name == 'tank':
-                        detections = cache.get('detections', [])
-                        detections.append({'class': 'tank', 'confidence': conf,
-                                           'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
-                        cache.set('detections', detections, timeout=300)  # Adjust timeout as needed
+            # Ensure the coordinates are within the frame boundaries
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(frame.shape[1], x2), min(frame.shape[0], y2)
 
-                yield img
-        # out.write(img)
-        # cv2.imshow("image", img)
-        # if cv2.waitKey(1) & 0xFF==ord('1'):
-        # break
-    # out.release()
+            conf = box.conf[0]
+            cls = int(box.cls[0])
+            class_name = classNames[cls]
 
+            if conf >= 0.8:
+                cv2.rectangle(frame, (x1, y1), (x2, y2), (255, 0, 255), 3)
+                label = f'{class_name} {conf:.2f}'
+                t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
+                c2 = x1 + t_size[0], y1 - t_size[1] - 3
+                cv2.rectangle(frame, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)  # filled
+                cv2.putText(frame, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
+
+                # Cache the detection if it's a 'tank'
+                if class_name == 'Tank':
+                    detections = cache.get('detections', [])
+                    detections.append({'class': 'tank', 'confidence': conf,
+                                       'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
+                    cache.set('detections', detections, timeout=300)  # Adjust timeout as needed
+
+    return frame
 
 cv2.destroyAllWindows()

@@ -5,10 +5,22 @@ import json
 from django.core.cache import cache
 
 
+def get_local_ip():
+    try:
+        # Use an external address to determine the correct IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('8.8.8.8', 80))  # This is a public DNS server, it doesn't have to be reachable
+        ip_address = s.getsockname()[0]
+        s.close()
+        return ip_address
+    except Exception as e:
+        print(f"Error: {e}")
+        return None
+
 
 class ServerSocket:
     def __init__(self, host='192.168.60.47', port=12344):
-        self.host = host
+        self.host = get_local_ip()
         self.port = port
         self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.sock.bind((self.host, self.port))

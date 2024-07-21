@@ -141,7 +141,6 @@ def pages(request):
         return HttpResponse(html_template.render(context, request))
 
 
-
 def generate_frames_webcam(path_x):
     print(f"Connecting to RTSP URL: {path_x}")
     cap = cv2.VideoCapture(path_x)
@@ -160,9 +159,8 @@ def generate_frames_webcam(path_x):
             print("Empty frame received")
             continue
 
-        # Process frame if needed (e.g., using YOLO)
-        # Uncomment and use if you have a video_detection function
-        # yolo_output = video_detection(frame)
+        # Process frame using YOLO model
+        frame = video_detection(frame)
 
         # Encode frame to JPEG
         ref, buffer = cv2.imencode('.jpg', frame)
@@ -175,25 +173,13 @@ def generate_frames_webcam(path_x):
 
 
 
-
 def first_webcam_feed(request):
+    # rtsp_url = "rtsp://user:pass@192.168.137.180:8554/streaming/live/1"
+    rtsp_url = "rtsp://user:pass@172.20.10.7:8554/streaming/live/1"
+    # return StreamingHttpResponse(generate_frames_webcam(rtsp_url),content_type='multipart/x-mixed-replace; boundary=frame')
+def second_webcam_feed(request):
     return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
     #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
-def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=1), content_type='multipart/x-mixed-replace; boundary=frame')
-    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
-# def second_webcam_feed(request):
-#     rtsp_url = "rtsp://user:pass@192.168.137.161:8554/streaming/live/1"
-#     # return StreamingHttpResponse(generate_frames_webcam(path_x=2), content_type='multipart/x-mixed-replace; boundary=frame')
-#     return StreamingHttpResponse(generate_frames_webcam(rtsp_url), content_type='multipart/x-mixed-replace; boundary=frame')
-#
-# def third_webcam_feed(request):
-#     rtsp_url = "rtsp://user:pass@192.168.137.157:1935/live"
-#     return StreamingHttpResponse(generate_frames_webcam(path_x=3), content_type='multipart/x-mixed-replace; boundary=frame')
-#     # return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://172.19.32.178:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
-
 
 
 @login_required
