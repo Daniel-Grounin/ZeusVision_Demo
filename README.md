@@ -43,10 +43,7 @@ ZeusVision allows for customization of the object detection process. Users can m
 
 We welcome contributions from the community. Whether it's improving the code, adding new features, or expanding our dataset, your input is invaluable. Please see our `CONTRIBUTING.md` for guidelines on how to make a contribution.
 
-## License
-
-ZeusVision is released under the MIT License. See the `LICENSE` file for more details.
 
 ## Acknowledgments
 
-Our project benefits from the work and research conducted in the fields of computer vision and drone technology. We extend our gratitude to the creators of the YOLO algorithm and the developers behind the VisDrone and YOLODrone projects for their pioneering efforts.
+Our project benefits from the work and research conducted in the fields of computer vision and drone technology. We extend our gratitude to the creators of the YOLO algorithm and the developers.
