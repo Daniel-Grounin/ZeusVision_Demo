@@ -18,7 +18,7 @@ ZeusVision is an innovative drone surveillance system designed to revolutionize 
 - Python 3.8 or later
 - PyTorch 1.7.1
 - OpenCV 4.5
-- A drone with a mobile device mounting capability
+- A DJI drone with a mobile device mounting capability that supports MSDK V5, 
 - A computer for processing the live feed
 
 ### Setup
