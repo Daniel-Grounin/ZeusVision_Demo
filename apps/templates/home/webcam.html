@@ -86,6 +86,11 @@
 <div id="videoOverlay" class="overlay">
   <img id="overlayFeed" src="" alt="Enlarged Feed">
   <div class="controls">
+    <select id="modelSelect" onchange="updateFeeds()" class="btn btn-secondary">
+      <option value="yolov8n.pt">YOLOv8n-COCO</option>
+      <option value="best3.pt">Yolo-Tank</option>
+      <option value="models/best_IDF_tank.pt">IDF_tank</option>
+    </select>
     <button onclick="zoomIn()" class="btn btn-primary">Zoom In</button>
     <button onclick="zoomOut()" class="btn btn-primary">Zoom Out</button>
     <button onclick="resetZoom()" class="btn btn-primary">Reset</button>
@@ -93,9 +98,13 @@
     <button onclick="closeOverlay()" class="btn btn-danger">Close</button>
   </div>
 </div>
+
+
+
 {% endblock content %}
 
 {% block javascripts %}
+
 <script>
   let scale = 1;
 let rotation = 0;
@@ -103,6 +112,13 @@ let isDragging = false;
 let startX, startY;
 let currentX = 0;
 let currentY = 0;
+
+function updateFeeds() {
+const model = document.getElementById('modelSelect').value;
+const overlayFeed = document.getElementById('overlayFeed');
+overlayFeed.src = `${overlayFeed.src.split('?')[0]}?model=${model}`;
+updateTransform();  // Update the transform if necessary
+}
 
 function enlargeFeed(feedUrl) {
   const overlayFeed = document.getElementById('overlayFeed');

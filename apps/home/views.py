@@ -1,3 +1,4 @@
+import socket
 from datetime import datetime
 from django.core.cache import cache
 
@@ -140,17 +141,23 @@ def pages(request):
         html_template = loader.get_template('home/page-500.html')
         return HttpResponse(html_template.render(context, request))
 
-
-def generate_frames_webcam(path_x):
-    print(f"Connecting to RTSP URL: {path_x}")
+FRAME_SKIP_FACTOR = 2
+def generate_frames_webcam(path_x, model_name):
+    print(f"Connecting to RTSP URL: {path_x} using model: {model_name}")
     cap = cv2.VideoCapture(path_x)
+
+    # Reduce buffer size
+    cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
 
     if not cap.isOpened():
         print(f"Unable to open video source {path_x}")
         return
 
+    frame_count = 0
     while cap.isOpened():
         success, frame = cap.read()
+        frame_count += 1
+
         if not success:
             print("Failed to read frame")
             break
@@ -159,8 +166,15 @@ def generate_frames_webcam(path_x):
             print("Empty frame received")
             continue
 
-        # Process frame using YOLO model
-        frame = video_detection(frame)
+        # Skip every fifth frame
+        if frame_count % FRAME_SKIP_FACTOR == 0:
+            continue
+
+        # Always resize the frame to a smaller resolution
+        frame = cv2.resize(frame, (640, 640))
+
+        # Process frame using the selected YOLO model
+        frame = video_detection(frame, model_name)
 
         # Encode frame to JPEG
         ref, buffer = cv2.imencode('.jpg', frame)
@@ -172,15 +186,15 @@ def generate_frames_webcam(path_x):
     cap.release()
 
 
-
 def first_webcam_feed(request):
-    # rtsp_url = "rtsp://user:pass@192.168.137.180:8554/streaming/live/1"
-    rtsp_url = "rtsp://user:pass@172.20.10.7:8554/streaming/live/1"
-    # return StreamingHttpResponse(generate_frames_webcam(rtsp_url),content_type='multipart/x-mixed-replace; boundary=frame')
-def second_webcam_feed(request):
-    return StreamingHttpResponse(generate_frames_webcam(path_x=0), content_type='multipart/x-mixed-replace; boundary=frame')
-    #return StreamingHttpResponse(generate_frames_webcam(path_x="rtmp://192.168.137.1:1935/live"), content_type='multipart/x-mixed-replace; boundary=frame')
+    model_name = request.GET.get('model', 'yolov8n.pt')  # Default to yolov8n.pt
+    url_address = "192.168.1.148"
+    rtsp_url = f"rtsp://user:pass@{url_address}:8554/streaming/live/1"
+    return StreamingHttpResponse(generate_frames_webcam(rtsp_url, model_name), content_type='multipart/x-mixed-replace; boundary=frame')
 
+def second_webcam_feed(request):
+    model_name = request.GET.get('model', 'yolov8n.pt')  # Default to yolov8n.pt
+    return StreamingHttpResponse(generate_frames_webcam(path_x=1, model_name=model_name), content_type='multipart/x-mixed-replace; boundary=frame')
 
 @login_required
 def map2_view(request):
@@ -199,15 +213,6 @@ def webcam_view(request):
     context = {}
     # Render and return the index.html template
     return render(request, 'home/webcam.html', context)
-
-@login_required
-def video_upload_view(request):
-    # You can add context variables to pass to the template as needed
-    context = {}
-    # Render and return the index.html template
-    return render(request, 'home/newvideoupload.html', context)
-
-
 
 @login_required
 def notifications_view(request):
@@ -289,6 +294,7 @@ from django.core.cache import cache
 
 
 def video_upload_view(request):
+    global video_files
     if request.method == 'POST':
         form = VideoUploadForm(request.POST, request.FILES)
         if form.is_valid():
@@ -323,9 +329,14 @@ def get_video_length(video_path):
 
 
 def process_video(video_path, fs, request):
+    # Check if this video has already been processed
+    if cache.get(f'processed_{video_path}'):
+        print(f"Video {video_path} has already been processed.")
+        return cache.get(f'processed_url_{video_path}')
+
     cap = cv2.VideoCapture(video_path)
     model = YOLO("../ZeusVision_Demo/best3.pt")
-    classNames = ["tank", "teddy bear", "0", "1"]
+    classNames = ["tank"]
     detections = []
 
     frame_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
@@ -334,13 +345,13 @@ def process_video(video_path, fs, request):
 
     # Ensure the file name is unique if needed
     if os.path.exists(output_path):
-        output_path = video_path.replace('.mp4', f'_processed_{datetime.now().strftime("%Y%m%d%H%M%S")}.mp4')
+        output_path = video_path.replace('.mp4', f'_processed_{datetime.now().strftime("%Y-%m-%d %H:%M:%S")}.mp4')
 
     # Use H.264 codec (which is widely supported in browsers) and MP4 container
     fourcc = cv2.VideoWriter.fourcc(*'avc1')  # H.264 codec
     out = cv2.VideoWriter(output_path, fourcc, 10, (frame_width, frame_height))
 
-    video_length = request.session.get('video_length', 1)  # Default to 1 to avoid division by zero
+    video_length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))  # Get the total number of frames
     processed_frames = 0
 
     while cap.isOpened():
@@ -348,25 +359,32 @@ def process_video(video_path, fs, request):
         if not success:
             break
 
+        # Perform YOLO detection on the given frame
         results = model(img, stream=True)
+
         for r in results:
-            boxes = r.boxes
-            for box in boxes:
-                x1, y1, x2, y2 = box.xyxy[0]
-                x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
-                conf = math.ceil((box.conf[0] * 100)) / 100
+            for box in r.boxes:
+                # Extract coordinates and ensure they are within the frame dimensions
+                x1, y1, x2, y2 = map(int, box.xyxy[0])
+
+                # Ensure the coordinates are within the frame boundaries
+                x1, y1 = max(0, x1), max(0, y1)
+                x2, y2 = min(img.shape[1], x2), min(img.shape[0], y2)
+
+                conf = box.conf[0]
                 cls = int(box.cls[0])
                 class_name = classNames[cls]
-                if conf >= 0.7:
-                    cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 3)
-                    label = f'{class_name} {conf}'
-                    t_size = cv2.getTextSize(label, 0, fontScale=1, thickness=2)[0]
+
+                if conf >= 0.6:
+                    cv2.rectangle(img, (x1, y1), (x2, y2), (255, 0, 255), 2)
+                    label = f'{class_name} {conf:.2f}'
+                    t_size = cv2.getTextSize(label, 0, fontScale=0.5, thickness=1)[0]
                     c2 = x1 + t_size[0], y1 - t_size[1] - 3
-                    cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)
-                    cv2.putText(img, label, (x1, y1 - 2), 0, 1, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
+                    cv2.rectangle(img, (x1, y1), c2, [255, 0, 255], -1, cv2.LINE_AA)  # filled
+                    cv2.putText(img, label, (x1, y1 - 2), 0, 0.5, [255, 255, 255], thickness=1, lineType=cv2.LINE_AA)
 
                     if class_name == 'tank':
-                        detections.append({'class': 'tank', 'confidence': conf,
+                        detections.append({'class': 'Tank', 'confidence': conf,
                                            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
 
         out.write(img)
@@ -381,7 +399,10 @@ def process_video(video_path, fs, request):
     with open(output_path, 'rb') as f:
         filename = fs.save(output_path.split('/')[-1], f)
     cache.set(f'detections_{filename}', detections)  # Cache detections for this video
-    return fs.url(filename)
+    processed_url = fs.url(filename)
+    cache.set(f'processed_url_{video_path}', processed_url)  # Cache the URL of the processed video
+    cache.set(f'processed_{video_path}', True)  # Mark this video as processed
+    return processed_url
 
 
 
