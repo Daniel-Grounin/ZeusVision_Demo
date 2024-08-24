@@ -20,6 +20,7 @@ model_class_names = {
                   ],
     "best3.pt": ["tank","0","1"],
     "models/best_IDF_tank.pt": ["Tank", "cars", "cake", "fish", "horse", "sheep", "cow", "elephant", "zebra", "giraffe"],
+    "models/tankNZ.pt": ["tank"],
     # Add more models and their corresponding class names here
 }
 
