@@ -141,7 +141,8 @@ def pages(request):
         html_template = loader.get_template('home/page-500.html')
         return HttpResponse(html_template.render(context, request))
 
-FRAME_SKIP_FACTOR = 2
+FRAME_SKIP_FACTOR = 10  # You can increase this value to skip more frames
+
 def generate_frames_webcam(path_x, model_name):
     print(f"Connecting to RTSP URL: {path_x} using model: {model_name}")
     cap = cv2.VideoCapture(path_x)
@@ -166,14 +167,13 @@ def generate_frames_webcam(path_x, model_name):
             print("Empty frame received")
             continue
 
-        # Skip every fifth frame
-        if frame_count % FRAME_SKIP_FACTOR == 0:
+        if frame_count % FRAME_SKIP_FACTOR != 0:
             continue
 
-        # Always resize the frame to a smaller resolution
+        # Always resize the frame to a smaller resolution before processing
         frame = cv2.resize(frame, (640, 640))
 
-        # Process frame using the selected YOLO model
+        # Skip detection drawing for speed optimization
         frame = video_detection(frame, model_name)
 
         # Encode frame to JPEG
@@ -184,11 +184,9 @@ def generate_frames_webcam(path_x, model_name):
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 
     cap.release()
-
-
 def first_webcam_feed(request):
     model_name = request.GET.get('model', 'yolov8n.pt')  # Default to yolov8n.pt
-    url_address = "192.168.1.148"
+    url_address = "192.168.137.21"
     rtsp_url = f"rtsp://user:pass@{url_address}:8554/streaming/live/1"
     return StreamingHttpResponse(generate_frames_webcam(rtsp_url, model_name), content_type='multipart/x-mixed-replace; boundary=frame')
 

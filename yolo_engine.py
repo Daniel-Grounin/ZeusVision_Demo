@@ -1,4 +1,6 @@
 from datetime import datetime
+
+import torch
 from ultralytics import YOLO
 import cv2
 import math
@@ -26,7 +28,8 @@ model_class_names = {
 
 def load_model(model_name):
     if model_name not in loaded_models:
-        loaded_models[model_name] = YOLO(model_name)
+        model = YOLO(model_name).to(torch.device('cpu'))  # Force the model to run on CPU
+        loaded_models[model_name] = model
     return loaded_models[model_name]
 
 def video_detection(frame, model_name):
