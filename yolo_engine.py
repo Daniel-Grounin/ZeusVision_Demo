@@ -58,7 +58,7 @@ def video_detection(frame, model_name):
                 print(f"Warning: class index {cls} is out of range for classNames")
                 continue
 
-            conf = box.conf[0].item() + 0.1
+            conf = box.conf[0].item() + 0
             if conf >= 1.0:
                 conf = 0.99
 
@@ -73,7 +73,7 @@ def video_detection(frame, model_name):
                 cv2.putText(frame, label, (x1, y1 - 2), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), thickness=1)
 
                 if class_name == 'tank':
-                    detections.append({'class': 'tank', 'confidence': conf,
+                    detections.append({'class': 'tank', 'confidence': round(conf,2),
                                        'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')})
     cache.set('detections', detections, timeout=300)
 

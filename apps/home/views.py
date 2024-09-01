@@ -186,13 +186,13 @@ def generate_frames_webcam(path_x, model_name):
     cap.release()
 def first_webcam_feed(request):
     model_name = request.GET.get('model', 'yolov8n.pt')  # Default to yolov8n.pt
-    url_address = "192.168.137.21"
+    url_address = "192.168.137.196"
     rtsp_url = f"rtsp://user:pass@{url_address}:8554/streaming/live/1"
     return StreamingHttpResponse(generate_frames_webcam(rtsp_url, model_name), content_type='multipart/x-mixed-replace; boundary=frame')
 
 def second_webcam_feed(request):
     model_name = request.GET.get('model', 'yolov8n.pt')  # Default to yolov8n.pt
-    return StreamingHttpResponse(generate_frames_webcam(path_x=1, model_name=model_name), content_type='multipart/x-mixed-replace; boundary=frame')
+    return StreamingHttpResponse(generate_frames_webcam(path_x=0, model_name=model_name), content_type='multipart/x-mixed-replace; boundary=frame')
 
 @login_required
 def map2_view(request):

@@ -32,3 +32,9 @@ class TaskForm(forms.ModelForm):
 
 class VideoUploadForm(forms.Form):
     video = forms.FileField(label='Select a video file')
+
+    def clean_video(self):
+        video = self.cleaned_data.get('video')
+        if not video.name.endswith(('.mp4', '.avi', '.mov')):
+            raise forms.ValidationError('Invalid file format. Please upload a video file.')
+        return video
